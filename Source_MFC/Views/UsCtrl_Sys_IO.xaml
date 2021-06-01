@@ -1,0 +1,90 @@
+﻿<UserControl x:Class="Source_MFC.Views.UsCtrl_Sys_IO"             
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Source_MFC.Views"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"                 
+             xmlns:ViewModels="clr-namespace:Source_MFC.ViewModels"
+             xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity" 
+             mc:Ignorable="d" 
+             d:DesignHeight="553" d:DesignWidth="960">
+    <Grid Background="White" Height="540" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0">
+            <GroupBox Header="INPUT SIGNALS" Style="{DynamicResource MaterialDesignCardGroupBox}" 
+                      Margin="5" FontSize="20">
+                <GroupBox.HeaderTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Input" Height="32" Width="32" VerticalAlignment="Center" />
+                            <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Text="{Binding}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </GroupBox.HeaderTemplate>
+
+
+                <Grid>
+                    <StackPanel Orientation="Vertical" >
+                        <DataGrid x:Name="grd_Input" 
+                                  AutoGenerateColumns="false" 
+                                  IsReadOnly="true" Height="465"
+                                  ScrollViewer.CanContentScroll="True" 
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                  ItemsSource="{Binding b_InputSrc.View}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="ID" Binding="{Binding eID}" />
+                                <DataGridCheckBoxColumn Header="STATE" Binding="{Binding state}" />
+                                <DataGridTextColumn Header="NAME" Binding="{Binding Label}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+        </Grid>
+        
+        <Grid Grid.Column="1">
+            <GroupBox Header="OUTPUT SIGNALS" Style="{DynamicResource MaterialDesignCardGroupBox}" 
+                      Margin="5" FontSize="20"
+                      materialDesign:ColorZoneAssist.Mode="Dark">
+                <GroupBox.HeaderTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Output" Height="32" Width="32" VerticalAlignment="Center" />
+                            <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Text="{Binding}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </GroupBox.HeaderTemplate>
+
+
+
+                <Grid>
+                    <StackPanel Orientation="Vertical">
+                        <DataGrid x:Name="grd_Output" 
+                                  AutoGenerateColumns="False" 
+                                  IsReadOnly="true" Height="465"
+                                  ScrollViewer.CanContentScroll="True" 
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto"                                  
+                                  ItemsSource="{Binding b_OutputSrc.View}" SelectionMode="Single">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="ID" Binding="{Binding eID}" />
+                                <DataGridCheckBoxColumn Header="STATE" IsReadOnly="False" Binding="{Binding getOutput}" />
+                                <DataGridTextColumn Header="NAME" Binding="{Binding Label}"  />
+                            </DataGrid.Columns>
+
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged">
+                                    <i:InvokeCommandAction Command="{Binding Evt_SelectedItem}" CommandParameter="{Binding Path=SelectedItems,ElementName=grd_Output}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </DataGrid>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+        </Grid>
+    </Grid>
+</UserControl>

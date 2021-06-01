@@ -1,0 +1,52 @@
+﻿<UserControl x:Class="Source_MFC.Views.UsCtrl_LogItem"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Source_MFC.Global"
+             xmlns:ViewModel="clr-namespace:Source_MFC.ViewModels"             
+             mc:Ignorable="d" 
+             d:DesignHeight="120" d:DesignWidth="960">
+    <Grid Background="#FF272626">
+        <TextBox x:Name="ReceTextBox" 
+                 Margin="3 3"
+                 Background="#FF5B5757"
+                 Height="115" MinWidth="950"
+                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                 VerticalScrollBarVisibility="Visible"
+                 local:MvvmTxtBox.Buffer="{Binding b_ReceData}" />
+
+        <!-- <TextBox x:Name="txt_msg" Text="{Binding b_text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="3 3" Height="115" MinWidth="950" AcceptsReturn="true" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                     VerticalScrollBarVisibility="Visible" TextWrapping="Wrap" Background="#FF5B5757" MaxLines="100" MinLines="50" IsTabStop="False" >
+        </TextBox> -->
+        <!-- <StackPanel Orientation="Vertical" >
+            <DataGrid x:Name="grd_Input" 
+                      AutoGenerateColumns="false" 
+                      Margin="5,5"
+                      IsReadOnly="true" Height="110"
+                      ScrollViewer.CanContentScroll="True" 
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                      ItemsSource="{Binding b_lstInput}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="TIME" Binding="{Binding time}" />
+                    <DataGridTextColumn Header="MESSAGE" Binding="{Binding msg}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </StackPanel> -->
+
+        <!-- <RichTextBox x:Name="rtbScriptView" 
+             Margin="5, 5" 
+             FontSize="12" 
+             Grid.ColumnSpan="1" 
+             VerticalScrollBarVisibility="Auto" 
+             RenderOptions.ClearTypeHint="Enabled">
+            <FlowDocument>
+                <Paragraph>
+                    <Run Text="{Binding b_text, 
+                                Mode=TwoWay, 
+                                UpdateSourceTrigger=PropertyChanged}" />
+                </Paragraph>
+            </FlowDocument>
+        </RichTextBox> -->
+    </Grid>
+</UserControl>

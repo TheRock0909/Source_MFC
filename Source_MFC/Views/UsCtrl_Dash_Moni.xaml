@@ -1,0 +1,283 @@
+﻿<UserControl x:Class="Source_MFC.Views.UsCtrl_Dash_Moni"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"              
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:ViewModels="clr-namespace:Source_MFC.ViewModels"
+             xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity" 
+             xmlns:wpf="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             xmlns:local="clr-namespace:Source_MFC.Views"             
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"                 
+             xmlns:materialDesignConverters="clr-namespace:MaterialDesignThemes.Wpf.Converters;assembly=MaterialDesignThemes.Wpf"             
+             mc:Ignorable="d" 
+             d:DesignHeight="553" d:DesignWidth="960" Foreground="Black" Background="WhiteSmoke" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <materialDesignConverters:BooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter" TrueValue="Collapsed" FalseValue="Visible" />
+
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.GroupBox.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="50*"/>
+            <ColumnDefinition Width="25*"/>
+            <ColumnDefinition Width="25*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Name="grd_JobMoni" MinHeight="550" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <GroupBox Grid.Row="0" Grid.Column="0" Header="JOB MONITOR" Style="{DynamicResource MaterialDesignGroupBox}" Margin="5" materialDesign:ColorZoneAssist.Mode="PrimaryLight">
+                <GroupBox.HeaderTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="MonitorMultiple" Height="32" Width="32" VerticalAlignment="Center" />
+                            <TextBlock Margin="5,0,0,0" VerticalAlignment="Center" Text="{Binding}" FontSize="20"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </GroupBox.HeaderTemplate>
+
+                <Grid >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20*"/>
+                        <RowDefinition Height="20*"/>
+                        <RowDefinition Height="20*"/>
+                        <RowDefinition Height="20*"/>
+                        <RowDefinition Height="20*"/>
+                        <RowDefinition Height="20*"/>
+                        <RowDefinition Height="20*"/>
+                        <RowDefinition Height="20*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <materialDesign:PackIcon Kind="IdCard" Height="20" Width="20" VerticalAlignment="Center" Foreground="Black"/>
+                        <TextBlock Text=" ID : " FontSize="20" Foreground="Black"/>
+                        <TextBlock x:Name="txt_JobID" Text="{Binding b_JobID}" FontSize="20" Foreground="Black"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <materialDesign:PackIcon Kind="Typewriter" Height="20" Width="20" VerticalAlignment="Center" Foreground="Black"/>
+                        <TextBlock Text=" TYPE : " FontSize="20" Foreground="Black"/>
+                        <TextBlock Name="txt_JobType" Text="{Binding b_JobType}" FontSize="20" Foreground="Black"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <materialDesign:PackIcon Kind="TrashVariant" Height="20" Width="20" VerticalAlignment="Center" Foreground="Black"/>
+                        <TextBlock Text=" TRAY ID : " FontSize="20" Foreground="Black"/>
+                        <TextBlock Name="txt_TrayID" Text="{Binding b_TrayID}" FontSize="20" Foreground="Black"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <materialDesign:PackIcon Kind="Target" Height="20" Width="20" VerticalAlignment="Center" Foreground="Black"/>
+                        <TextBlock Text=" DESTINATION : " FontSize="20" Foreground="Black"/>
+                        <TextBlock Name="txt_Dest" Text="{Binding b_Dest}" FontSize="20" Foreground="Black"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="4" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <materialDesign:PackIcon Kind="Workflow" Height="20" Width="20" VerticalAlignment="Center" Foreground="Black"/>
+                        <TextBlock Text=" STATE : " FontSize="20" Foreground="Black"/>
+                        <TextBlock Name="txt_JobState" Text="{Binding b_JobState}" FontSize="20" Foreground="Black"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="5" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <materialDesign:PackIcon Kind="StateMachine" Height="20" Width="20" VerticalAlignment="Center" Foreground="Black"/>
+                        <TextBlock Text=" AIV STATE : " FontSize="20" Foreground="Black"/>
+                        <TextBlock Name="txt_VecState" Text="{Binding b_AIVState}" FontSize="20" Foreground="Black"/>
+                    </StackPanel>
+
+                    <StackPanel Name="pnl_dockSt" Grid.Row="6" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left" >
+                        <CheckBox IsChecked="{Binding b_AlignSen}" Content="S" Style="{StaticResource MaterialDesignActionDarkCheckBox}" Width="20" Height="20" FontSize="12"/>
+                        <TextBlock Text=" DOCKING ST : " FontSize="20" Foreground="Black"/>
+                        <TextBlock Name="txt_VecPauseSt" Text="{Binding b_PauseState}" FontSize="20" Foreground="Black"/>
+                        <TextBlock Text="  " FontSize="20" Foreground="Black"/>
+                    </StackPanel>
+
+                    <Grid Grid.Row="7">
+                        <Button Name="btn_DockSt"
+                                Margin="5 5"
+                                MinWidth="420"
+                                Command="{Binding Evt_DismissComand}"
+                                Style="{StaticResource MaterialDesignRaisedButton}"
+                                HorizontalAlignment="Stretch"                                        
+                                VerticalAlignment="Stretch"
+                                materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
+                                materialDesign:ButtonProgressAssist.IndicatorBackground="Black"
+                                materialDesign:ButtonProgressAssist.Value="{Binding DismissButtonProgress}"
+                                Visibility="{Binding ShowDismissButton, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon VerticalAlignment="Center" Kind="ProgressClock" />
+                                <TextBlock> PIO TIME</TextBlock>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </GroupBox>
+        </Grid>
+        <Grid Name="grd_DevMoni" MinHeight="550" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="60*"/>
+                <RowDefinition Height="40*"/>
+            </Grid.RowDefinitions>
+
+
+            <Grid Grid.Row="0">
+                <GroupBox Header="INPUT SIGNALS" Style="{DynamicResource MaterialDesignCardGroupBox}" 
+                      Margin="5" FontSize="12">
+                    <GroupBox.HeaderTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Input" Height="20" Width="20" VerticalAlignment="Center" />
+                                <TextBlock Margin="5,0,0,0" VerticalAlignment="Center" Text="{Binding}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </GroupBox.HeaderTemplate>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="101*"/>
+                            <ColumnDefinition Width="111*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Vertical" Grid.ColumnSpan="2" >
+                            <DataGrid x:Name="grd_Input" 
+                                  AutoGenerateColumns="false" 
+                                  IsReadOnly="true" MinHeight="210"
+                                  ScrollViewer.CanContentScroll="True" 
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                  FontSize="10"
+                                  ItemsSource="{Binding b_InputSrc.View}">
+                                <DataGrid.Columns>
+                                    <DataGridCheckBoxColumn Header="STATE" Binding="{Binding state}" />
+                                    <DataGridTextColumn Header="NAME" Binding="{Binding Label}" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+            </Grid>
+
+            <Grid Grid.Row="1">
+                <GroupBox Header="OUTPUT SIGNALS" Style="{DynamicResource MaterialDesignCardGroupBox}" 
+                      Margin="5" FontSize="12"
+                      materialDesign:ColorZoneAssist.Mode="Dark">
+                    <GroupBox.HeaderTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Output" Height="20" Width="20" VerticalAlignment="Center" />
+                                <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Text="{Binding}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </GroupBox.HeaderTemplate>
+
+                    <Grid>
+                        <StackPanel Orientation="Vertical">
+                            <DataGrid x:Name="grd_Output" 
+                                  AutoGenerateColumns="False" 
+                                  IsReadOnly="true" MinHeight="155"
+                                  ScrollViewer.CanContentScroll="True" 
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto"   
+                                  FontSize="10"
+                                  ItemsSource="{Binding b_OutputSrc.View}" 
+                                  SelectionMode="Single">
+                                <DataGrid.Columns>
+                                    <DataGridCheckBoxColumn Header="STATE" IsReadOnly="False" Binding="{Binding getOutput}" />
+                                    <DataGridTextColumn Header="NAME" Binding="{Binding Label}"  />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+            </Grid>
+        </Grid>
+
+        <Grid Name="grd_Menu" MinHeight="550" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="25*"/>
+                <RowDefinition Height="25*"/>
+                <RowDefinition Height="50*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Grid.ColumnSpan="2"  Margin="5, 5">
+                <Rectangle Fill="White" RadiusX="5" RadiusY="5" Grid.RowSpan="3" >
+                    <Rectangle.Effect>
+                        <DropShadowEffect BlurRadius="20" Color="#FFDEDEDE" RenderingBias="Quality" ShadowDepth="1"/>
+                    </Rectangle.Effect>
+                </Rectangle>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="25*"/>
+                        <RowDefinition Height="50*"/>
+                        <RowDefinition Height="25*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="20*"/>
+                        <ColumnDefinition Width="80*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid MinHeight="50" MinWidth="35" Background="#FF41A43C" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="2" Margin="5 0">
+                        <Grid.Effect>
+                            <DropShadowEffect BlurRadius="20" Color="#FFECECEC" ShadowDepth="5" RenderingBias="Performance"/>
+                        </Grid.Effect>
+                        <materialDesign:PackIcon Kind="ContentCopy" Foreground="White" Width="Auto" MinHeight="25" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0 5"/>
+                    </Grid>
+                    <TextBlock Grid.Column="1" Text="STATE" HorizontalAlignment="Left" VerticalAlignment="Center" FontFamily="Champaqne &amp; Limousines" Foreground="Gray" FontSize="20"/>
+                </Grid>
+                <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding b_EQPState}" FontFamily="Champaqne &amp; Limousines" Foreground="Gray" FontSize="40" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                <materialDesign:PackIcon Grid.Row="2" Kind="{Binding b_IconManualMode}" Foreground="Green" MinWidth="20" MinHeight="20" VerticalAlignment="Bottom" Margin="5"/>
+                <TextBlock Text="{Binding b_ManualMode}"  Grid.Column="1" Grid.Row="2" FontSize="15" Foreground="#FF8522BD" VerticalAlignment="Bottom" TextAlignment="Center" Margin="5"/>
+            </Grid>
+
+
+            <Grid Grid.Row="1" Grid.ColumnSpan="2"  Margin="5, 5">
+                <Rectangle Fill="White" RadiusX="5" RadiusY="5" Grid.RowSpan="3" >
+                    <Rectangle.Effect>
+                        <DropShadowEffect BlurRadius="20" Color="#FFDEDEDE" RenderingBias="Quality" ShadowDepth="1"/>
+                    </Rectangle.Effect>
+                </Rectangle>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="25*"/>
+                        <RowDefinition Height="50*"/>
+                        <RowDefinition Height="25*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="20*"/>
+                        <ColumnDefinition Width="80*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid MinHeight="50" MinWidth="35" Background="Orange" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="2" Margin="5 0">
+                        <Grid.Effect>
+                            <DropShadowEffect BlurRadius="20" Color="#FFECECEC" ShadowDepth="5" RenderingBias="Performance"/>
+                        </Grid.Effect>
+                        <materialDesign:PackIcon Kind="ElectricVehicleCharger" Foreground="White" Width="Auto" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0 5"/>
+                    </Grid>
+                    <TextBlock Grid.Column="1" Text="SOC" HorizontalAlignment="Left" VerticalAlignment="Center" FontFamily="Champaqne &amp; Limousines" Foreground="Gray" FontSize="20"/>
+                </Grid>
+                <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding b_VecSOC}" FontFamily="Champaqne &amp; Limousines" Foreground="{Binding b_ForeGroundSOC}" FontSize="40" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                <materialDesign:PackIcon Grid.Row="2" Kind="{Binding b_IconVecState}" Foreground="Green" Width="20" Height="20" VerticalAlignment="Bottom" Margin="5"/>
+                <TextBlock Text="{Binding b_VecState}"  Grid.Column="1" Grid.Row="2" FontSize="15" Foreground="#FF8522BD" VerticalAlignment="Bottom" TextAlignment="Center" Margin="5"/>
+            </Grid>
+
+            <Grid Grid.Row="2" Margin="5 5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="25*"/>
+                    <RowDefinition Height="25*"/>
+                    <RowDefinition Height="25*"/>
+                    <RowDefinition Height="25*"/>
+                </Grid.RowDefinitions>
+
+                <Button Name="btn_Start"    Grid.Row="0" Uid="505" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Start}"    Content="_START" Style="{DynamicResource MaterialDesignRaisedDarkButton}" FontSize="25" MinHeight="60" />
+                <Button Name="btn_Stop"     Grid.Row="1" Uid="506" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Stop}"     Content="_STOP" Style="{DynamicResource MaterialDesignRaisedButton}" FontSize="25" MinHeight="60" Margin="0,0,0,3" VerticalAlignment="Bottom" />
+                <Button Name="btn_Reset"    Grid.Row="2" Uid="507" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Reset}"    Content="_RESET" Style="{DynamicResource MaterialDesignRaisedLightButton}" FontSize="25" MinHeight="60" />
+                <Button Name="btn_DropJob"  Grid.Row="3" Uid="508" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_DropJob}"  Content="_DROP JOB" Style="{DynamicResource MaterialDesignRaisedButton}" FontSize="25" Background="#FF3C4961" MinHeight="60" />
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

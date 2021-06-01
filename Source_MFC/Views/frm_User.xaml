@@ -1,0 +1,57 @@
+﻿<Window x:Class="Source_MFC.Views.frm_User"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:local="clr-namespace:Source_MFC.Views"
+        xmlns:ViewModels ="clr-namespace:Source_MFC.ViewModels"
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity" 
+        mc:Ignorable="d"
+        FontFamily="Segoe UI Emoji"
+        Title="frm_User" Height="329" Width="242" ScrollViewer.VerticalScrollBarVisibility="Disabled" Visibility="Visible" WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+    <Grid x:Name="MainGrid">
+        <Rectangle Fill="#FFA6A6A8" HorizontalAlignment="Left" Height="294" Margin="12,11,0,0" Stroke="Black" VerticalAlignment="Top" Width="217" RadiusY="22.526" RadiusX="22.526"/>
+        <Rectangle x:Name="MainRectangle" Fill="{Binding b_MainRectFill}" HorizontalAlignment="Left" Height="299" Margin="3,19,0,0" Stroke="White" VerticalAlignment="Top" Width="216" RadiusY="22.526" RadiusX="22.526"/>
+
+        <Grid x:Name="LoginGrid" Margin="3,69,-3,17" Visibility="{Binding Vsb_LoginGrd}">
+            <TextBox x:Name="txt_username" FontSize="15" materialDesign:HintAssist.Hint="User" Text="{Binding b_User}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" FontFamily="Champagne &amp; Limousines"  Margin="26,41,50,155"/>
+            <TextBox x:Name="txt_password" FontSize="15" materialDesign:HintAssist.Hint="Password" Text="{Binding b_PassWord}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" FontFamily="Champagne &amp; Limousines" Margin="26,95,50,98"/>
+            <Rectangle Fill="#FF2192D3" HorizontalAlignment="Left" Height="48" VerticalAlignment="Top" Width="9"/>
+            <TextBlock x:Name="lbl_Title"  Text="LOGIN" HorizontalAlignment="Left" Height="48" TextWrapping="Wrap" VerticalAlignment="Top" Width="128" FontSize="30" FontWeight="Bold" Margin="14,0,0,0"/>
+            <Rectangle Fill="#FF5B5B5B" HorizontalAlignment="Left" Height="2" VerticalAlignment="Top" Width="152" Margin="26,88,0,0"/>
+            <Rectangle Fill="#FF5B5B5B" HorizontalAlignment="Left" Height="2" VerticalAlignment="Top" Width="152" Margin="26,145,0,0"/>
+            <Button x:Name="btn_Go" Content="GO" FontWeight="Bold" Command="{Binding Evt_BtnClicked}" CommandParameter="{Binding Name, ElementName=btn_Go}" HorizontalAlignment="Left" Height="31" VerticalAlignment="Top" Width="128" BorderBrush="White" Margin="39,171,0,0" RenderTransformOrigin="0.453,1.645"/>
+        </Grid>
+
+        <Button x:Name="btn_openregister" FontSize="25"  Content="+" FontWeight="Bold" HorizontalAlignment="Left" Height="47" VerticalAlignment="Top" Width="49" BorderBrush="White" 
+                Command="{Binding Evt_BtnClicked}" CommandParameter="{Binding Name, ElementName=btn_openregister}" Margin="188,69,0,0" Visibility="{Binding Vsb_Openregister}"/>
+
+        <Grid x:Name="RegisterGrid" Margin="3,69,-3,17" Visibility="{Binding Vsb_Openregister}">
+            <TextBox x:Name="txt_newusername" FontSize="15" materialDesign:HintAssist.Hint="User" Text="{Binding b_NewUser}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" FontFamily="Champagne &amp; Limousines"  Margin="26,36,50,155"/>
+            <TextBox x:Name="txt_newpassword" FontSize="15" materialDesign:HintAssist.Hint="Password" Text="{Binding b_NewPassWord}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" FontFamily="Champagne &amp; Limousines" Margin="26,95,50,98"/>
+            <Rectangle Fill="#FFFFFF" HorizontalAlignment="Left" Height="48" VerticalAlignment="Top" Width="9" />
+            <TextBlock Text="REGISTER" HorizontalAlignment="Left" Height="48" TextWrapping="Wrap" VerticalAlignment="Top" Width="152" FontSize="30" Foreground="#FFFFFF" FontWeight="Bold" Margin="14,0,0,0"/>
+            <Rectangle Fill="#FFFFFF" HorizontalAlignment="Left" Height="2" VerticalAlignment="Top" Width="152" Margin="26,145,0,0"/>
+            <Button x:Name="btn_Back" Style="{StaticResource MaterialDesignFloatingActionMiniAccentButton}" FontSize="25" FontWeight="Bold" HorizontalAlignment="Left" Height="47" 
+                    VerticalAlignment="Top" Width="49" Background="{x:Null}" Command="{Binding Evt_BtnClicked}" CommandParameter="{Binding Name, ElementName=btn_Back}" Margin="174,0,0,0" 
+                    BorderBrush="{x:Null}" Foreground="#DDFFFFFF" Visibility="{Binding Vsb_Background}">
+                <materialDesign:PackIcon Kind="Backspace" Width="30" Height="30"/>
+            </Button>
+            <ComboBox x:Name="combo_grade" ItemsSource="{Binding eOprgrade}" HorizontalAlignment="Left" Height="35" Margin="27,165,0,0" VerticalAlignment="Top" Width="165">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectionChanged">
+                        <i:InvokeCommandAction Command="{Binding Evt_CmbSelechanged}" CommandParameter="{Binding SelectedValue, ElementName=combo_grade}"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </ComboBox>
+            <Rectangle Fill="#FFFFFF" HorizontalAlignment="Left" Height="2" VerticalAlignment="Top" Width="152" Margin="26,88,0,0"/>
+            <Button x:Name="btn_Edit" Content="ADD" FontWeight="Bold"  HorizontalAlignment="Left" Height="31" VerticalAlignment="Top" Width="128" BorderBrush="White" Background="#FFFFFF" 
+                    Command="{Binding Evt_BtnClicked}" CommandParameter="{Binding Name, ElementName=btn_Edit}" Margin="38,212,0,0" Foreground="#FF231F1F"/>
+        </Grid>
+
+        <Button x:Name="btn_Exit" Command="{Binding Evt_BtnClicked}" CommandParameter="{Binding Name, ElementName=btn_Exit}" Style="{StaticResource MaterialDesignFloatingActionMiniAccentButton}" HorizontalAlignment="Left" Height="22" Margin="190,25,0,0" VerticalAlignment="Top" Width="22" Foreground="{Binding b_ExitForeground}" Background="{x:Null}" BorderBrush="{x:Null}" >
+            <materialDesign:PackIcon Kind="ExitToApp" Width="20" Height="20"/>
+        </Button>
+    </Grid>
+</Window>

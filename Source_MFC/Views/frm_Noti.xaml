@@ -1,0 +1,23 @@
+﻿<Window x:Class="Source_MFC.Views.frm_Noti"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Source_MFC.Views"
+        mc:Ignorable="d"
+        Title="frm_Noti" Height="200" Width="400" MaxHeight="500" AllowsTransparency="true" WindowStyle="None" Background="{x:Null}" WindowStartupLocation="CenterScreen">
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+            <BeginStoryboard>
+                <Storyboard FillBehavior="HoldEnd" AutoReverse="False">
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.3"/>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </Window.Triggers>
+    <Grid x:Name="gBody">
+        <Border Background="#E52E2D2D" CornerRadius="20" Grid.RowSpan="2">
+            <TextBlock Name="txb_msg" TextWrapping="Wrap" Text="{Binding b_TxtContent}" Margin="10,48,10,58" FontSize="18" TextAlignment="Center" ScrollViewer.CanContentScroll="True" Foreground="#FFFDFCFC"/>
+        </Border>
+    </Grid>
+</Window>
