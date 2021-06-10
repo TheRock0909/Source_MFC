@@ -19,8 +19,8 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    
-    <Grid>
+
+    <Grid Height="540" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="20*"/>
             <ColumnDefinition Width="80*"/>
@@ -86,11 +86,11 @@
                     </GroupBox.HeaderTemplate>
 
                     <Grid>
-                        <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch" >
+                        <StackPanel Orientation="Vertical" >
                             <DataGrid x:Name="grd_lstgoals" 
                               Margin="5 0"
                               AutoGenerateColumns="false" 
-                              IsReadOnly="true" MinHeight="385"
+                              IsReadOnly="true" Height="315"
                               ScrollViewer.CanContentScroll="True" 
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
                               FontSize="12"

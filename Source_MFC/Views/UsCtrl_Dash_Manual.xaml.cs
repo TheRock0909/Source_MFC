@@ -25,7 +25,7 @@ namespace Source_MFC.Views
         public UsCtrl_Dash_Manual(MainCtrl ctrl)
         {
             InitializeComponent();            
-            this.Uid = eVIWER.Monitor.ToString();
+            this.Uid = eVIWER.Manual.ToString();
             VM_UsCtrl_Dash_Manual vm = new VM_UsCtrl_Dash_Manual(ctrl);
             this.DataContext = vm;
         }

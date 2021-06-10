@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Source_MFC.ViewModels
 {
@@ -19,15 +20,46 @@ namespace Source_MFC.ViewModels
     {
         MainCtrl _ctrl;
         STATUS _Status;
+        Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
         public ICommand Evt_CmdBtnClicked { get; set; }
         public ICommand Evt_DismissComand { get; set; }
+        DispatcherTimer _tmrUpdate;
+        private List<SRC4MONI> lstInputs = new List<SRC4MONI>();
+        private List<SRC4MONI> lstOutputs = new List<SRC4MONI>();
+
         public VM_UsCtrl_Dash_Moni(MainCtrl ctrl)
         {
             _ctrl = ctrl;
             _Status = _ctrl._status;
             _ctrl.Evt_Dash_Moni_DataExchange += On_DataExchange;
             Evt_CmdBtnClicked = new Command(On_CmdBtnClicked, CanExecute);
-            Evt_DismissComand = new Command(On_DismissComand);            
+            Evt_DismissComand = new Command(On_DismissComand);
+
+            _tmrUpdate = new DispatcherTimer();
+            _tmrUpdate.Interval = TimeSpan.FromMilliseconds(10);    //시간간격 설정
+            _tmrUpdate.Tick += new EventHandler(Tmr_Tick);           //이벤트 추가              
+        }
+
+        ~VM_UsCtrl_Dash_Moni()
+        {
+            _ctrl.Evt_Dash_Moni_DataExchange -= On_DataExchange;
+            _tmrUpdate.Tick -= Tmr_Tick;
+            _tmrUpdate.Stop();
+            b_lstInput = null;
+            b_lstOutput = null;
+        }
+
+        private void _Finalize()
+        {            
+                  
+        }
+
+        private void Tmr_Tick(object sender, EventArgs e)
+        {            
+            UpdateSOC(_Status.vecState.soc);
+            UpdateVecStatus(_Status.vecState.state);
+            UpdateManualMode(_Status.bIsManual);
+            On_DataExchange(null, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_IO));
         }
 
         private void On_DataExchange(object sender, (eDATAEXCHANGE dir, eUID4VM id) e)
@@ -39,68 +71,68 @@ namespace Source_MFC.ViewModels
                         switch (e.id)
                         {
                             case eUID4VM.DASH_MONI_ALL:
-                                {
-                                    var status = sender as STATUS;
-                                    b_EQPState = status.eqpState.ToString();
-                                    UpdateManualMode(status.bIsManual);
-                                    UpdateSOC(status.vecState.soc);
-                                    UpdateVecStatus(status.vecState.state);
-                                    switch (_Data.Inst.sys.cfg.fac.eqpType)
-                                    {
-                                        case eEQPTYPE.MFC:
-                                            b_lstInput = new ObservableCollection<IOSRC>() ;
-                                            b_InputSrc = new CollectionViewSource();
-                                            b_lstInput.CollectionChanged += On_CollectionChanged;
-                                            var listIn = _ctrl.IO_LstGet(eVIWER.Monitor, eIOTYPE.INPUT);
-                                            b_lstInput.Clear();
-                                            foreach (IOSRC item in listIn)
-                                            {
-                                                b_lstInput.Add(item);
-                                            }
-                                            b_InputSrc.Source = b_lstInput;
-
-                                            b_lstOutput = new ObservableCollection<IOSRC>();
-                                            b_OutputSrc = new CollectionViewSource();
-                                            b_lstOutput.CollectionChanged += On_CollectionChanged;
-                                            var listOut = _ctrl.IO_LstGet(eVIWER.Monitor, eIOTYPE.OUTPUT);
-                                            b_lstOutput.Clear();
-                                            foreach (IOSRC item in listOut)
-                                            {
-                                                b_lstOutput.Add(item);
-                                            }
-                                            b_OutputSrc.Source = b_lstOutput;
-                                            break;
-                                        default: break;
+                                {                                    
+                                    var listIn = _ctrl.IO_LstGet(eVIWER.Monitor, eIOTYPE.INPUT);
+                                    lstInputs.Clear();
+                                    foreach (IOSRC item in listIn)
+                                    {                                        
+                                        lstInputs.Add(new SRC4MONI() { LABEL = item.Label, STATE = item.state, _strEnum = item.name4Enum });
                                     }
+                                    _inputs = new ObservableCollection<SRC4MONI>(lstInputs);
+                                    
+                                    lstOutputs.Clear();
+                                    var listOut = _ctrl.IO_LstGet(eVIWER.Monitor, eIOTYPE.OUTPUT);
+                                    foreach (IOSRC item in listOut)
+                                    {
+                                        lstOutputs.Add(new SRC4MONI() { LABEL = item.Label, STATE = item.getOutput, _strEnum = item.name4Enum });
+                                    }
+                                    _Output = new ObservableCollection<SRC4MONI>(lstOutputs);
+
+                                    On_DataExchange(null, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_JOB_Reset));
+                                    _tmrUpdate.Start();
                                     break;
                                 }
-                            case eUID4VM.DASH_MONI_EqpState: b_EQPState = $"{(eEQPSATUS)sender}"; break;
-                            case eUID4VM.DASH_MONI_EqpMode: UpdateManualMode((bool)sender); break;
+                            case eUID4VM.DASH_MONI_EqpState:
+                                b_EQPState = $"{_ctrl._EQPStatus}";
+                                break;
                             case eUID4VM.DASH_MONI_VECSTATE:
                                 {
-                                    var status = sender as STATUS;
-                                    UpdateSOC(status.vecState.soc);
-                                    UpdateVecStatus((EzVehicle.Ctrl.eSTATE)sender);
                                     break;
                                 }
                             case eUID4VM.DASH_MONI_IO:
                                 {
-                                    var io = sender as IOINFO;
-                                    foreach (IOSRC item in b_lstInput)
+                                    foreach (var item in lstInputs)
                                     {
-                                        item.state = io.Get((eINPUT)item.eID).state;
-                                    }
-                                    b_InputSrc.View.Refresh();
-                                    foreach (IOSRC item in b_lstOutput)
+                                        item.STATE = _ctrl.IO_IN(item.GetIn());
+                                    }                             
+                                    
+                                    foreach (var item in lstOutputs)
                                     {
-                                        item.getOutput = io.Get((eOUTPUT)item.eID).getOutput;
+                                        item.STATE = _ctrl.IO_GETOUT(item.GetOut());
                                     }
-                                    b_OutputSrc.View.Refresh();
+
                                     switch (_Data.Inst.sys.cfg.fac.eqpType)
-                                    {                                        
-                                        case eEQPTYPE.MFC: b_AlignSen = _ctrl.IO_IN(eINPUT.MFC_POS_OK); break;                                        
+                                    {
+                                        case eEQPTYPE.MFC: b_jobMoni.SetPosGoodSen(_ctrl.IO_IN(eINPUT.MFC_POS_OK)); break;
                                         default: break;
-                                    }                                    
+                                    }
+                                    break;
+                                }
+                            case eUID4VM.DASH_MONI_JOB_Assigned:
+                            case eUID4VM.DASH_MONI_JOB_Reset:
+                                {
+                                    b_jobMoni.JobSet(_Status.Order, _Status.vecState);
+                                    break;
+                                }
+                            case eUID4VM.DASH_MONI_JOB_Update:
+                                {
+                                    b_jobMoni.JobState(_Status.Order.state, _Status.vecState.JobState);
+                                    break;
+                                }
+                            case eUID4VM.DASH_MONI_JOB_PioStart:
+                                {
+                                    var rtn = sender as Noti;
+                                    b_jobMoni.StartProgress(rtn.msg, rtn.nTemp);
                                     break;
                                 }
                             case eUID4VM.DASH_MONI_START:                                
@@ -111,6 +143,7 @@ namespace Source_MFC.ViewModels
                                 break;
                             case eUID4VM.DASH_MONI_DROPJOB:
                                 break;
+                           
                             default: break;
                         }
                         break;
@@ -122,9 +155,6 @@ namespace Source_MFC.ViewModels
                             case eUID4VM.DASH_MONI_ALL:
                                 break;
                             case eUID4VM.DASH_MONI_EqpState:
-
-                                break;
-                            case eUID4VM.DASH_MONI_EqpMode:
                                 break;
                             case eUID4VM.DASH_MONI_VECSTATE:
                                 break;
@@ -145,6 +175,7 @@ namespace Source_MFC.ViewModels
                 default: break;
             }            
         }
+
 
         private void On_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
@@ -312,144 +343,81 @@ namespace Source_MFC.ViewModels
         public string b_EQPState
         {
             get { return EQPState; }
-            set { EQPState = value; OnPropertyChanged("b_EQPState"); }
+            set {
+                this.MutateVerbose(ref EQPState, value, RaisePropertyChanged());            
+            }
         }
 
         PackIconKind IconManualMode = PackIconKind.Stop;
         public PackIconKind b_IconManualMode
         {
             get { return IconManualMode; }
-            set { IconManualMode = value; OnPropertyChanged("b_ManualModeIcon"); }
+            set { this.MutateVerbose(ref IconManualMode, value, RaisePropertyChanged()); }
         }
 
         string ManualMode = string.Empty;
         public string b_ManualMode
         {
             get { return ManualMode; }
-            set { ManualMode = value; OnPropertyChanged("b_ManualMode"); }
+            set { this.MutateVerbose(ref ManualMode, value, RaisePropertyChanged());}
         }
 
         string VecSOC = string.Empty;
         public string b_VecSOC
         {
             get { return VecSOC; }
-            set { VecSOC = value; OnPropertyChanged("b_VecSOC"); }
+            set { this.MutateVerbose(ref VecSOC, value, RaisePropertyChanged()); }
         }
 
         SolidColorBrush ForeGroundSOC;
         public SolidColorBrush b_ForeGroundSOC
         {
             get { return ForeGroundSOC; }
-            set { ForeGroundSOC = value; OnPropertyChanged("b_ForeGroundSOC"); }
+            set { this.MutateVerbose(ref ForeGroundSOC, value, RaisePropertyChanged()); }
         }
 
         PackIconKind IconVecState = PackIconKind.Stop;
         public PackIconKind b_IconVecState
         {
             get { return IconVecState; }
-            set { IconVecState = value; OnPropertyChanged("b_ManualModeIcon"); }
+            set { this.MutateVerbose(ref IconVecState, value, RaisePropertyChanged()); }
         }
 
         string VecState = string.Empty;
         public string b_VecState
         {
             get { return VecState; }
-            set { VecState = value; OnPropertyChanged("b_VecState"); }
+            set { this.MutateVerbose(ref VecState, value, RaisePropertyChanged()); }
         }
 
         SolidColorBrush ForeGroundVecState;
         public SolidColorBrush b_ForeGroundVecState
         {
             get { return ForeGroundVecState; }
-            set { ForeGroundVecState = value; OnPropertyChanged("b_ForeGroundVecState"); }
+            set { this.MutateVerbose(ref ForeGroundVecState, value, RaisePropertyChanged()); }
         }
 
-        string JobID = string.Empty;
-        public string b_JobID
+        private ObservableCollection<SRC4MONI> _inputs;        
+        public ObservableCollection<SRC4MONI> b_lstInput
         {
-            get { return JobID; }
-            set { JobID = value; OnPropertyChanged("b_JobID"); }
+            get =>_inputs;
+            set { this.MutateVerbose(ref _inputs, value, RaisePropertyChanged()); }
         }
-
-        string JobType = string.Empty;
-        public string b_JobType
+        
+        private ObservableCollection<SRC4MONI> _Output ;
+        public ObservableCollection<SRC4MONI> b_lstOutput
         {
-            get { return JobType; }
-            set { JobType = value; OnPropertyChanged("b_JobType"); }
-        }
-
-        string TrayID = string.Empty;
-        public string b_TrayID
-        {
-            get { return TrayID; }
-            set { TrayID = value; OnPropertyChanged("b_TrayID"); }
-        }        
-
-        string Dest = string.Empty;
-        public string b_Dest
-        {
-            get { return Dest; }
-            set { Dest = value; OnPropertyChanged("b_Dest"); }
-        }
-
-        string JobState = string.Empty;
-        public string b_JobState
-        {
-            get { return JobState; }
-            set { JobState = value; OnPropertyChanged("b_JobState"); }
-        }
-
-        string AIVState = string.Empty;
-        public string b_AIVState
-        {
-            get { return AIVState; }
-            set { AIVState = value; OnPropertyChanged("b_AIVState"); }
-        }
-
-        bool AlignSen = false;
-        public bool b_AlignSen
-        {
-            get { return AlignSen; }
+            get { return _Output; }
             set {
-                if (value == AlignSen) return;
-                AlignSen = value; OnPropertyChanged("b_AlignSen");
+                this.MutateVerbose(ref _Output, value, RaisePropertyChanged());
             }
         }
 
-        string PauseState = string.Empty;
-        public string b_PauseState
+        JobMonitor jobMoni = new JobMonitor();
+        public JobMonitor b_jobMoni
         {
-            get { return PauseState; }
-            set { PauseState = value; OnPropertyChanged("b_PauseState"); }
+            get { return jobMoni; }
+            set { jobMoni = value; }
         }
-
-        public CollectionViewSource b_InputSrc { get; set; }
-        private ObservableCollection<IOSRC> lst_Input;
-        private ObservableCollection<IOSRC> b_lstInput
-        {
-            get {
-                return lst_Input;
-            }
-            set {
-                if (value == lst_Input) return;
-                lst_Input = value;
-                OnPropertyChanged("b_lstInput");
-            }
-        }
-
-        public CollectionViewSource b_OutputSrc { get; set; }
-        private ObservableCollection<IOSRC> lst_Output ;
-        private ObservableCollection<IOSRC> b_lstOutput
-        {
-            get {
-                return lst_Output;
-            }
-            set {
-                if (value == lst_Output) return;
-                lst_Output = value;
-                OnPropertyChanged("b_lstOutput");
-            }
-        }
-
     }
 }

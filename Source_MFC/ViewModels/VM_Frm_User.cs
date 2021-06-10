@@ -40,6 +40,11 @@ namespace Source_MFC.ViewModels
             }
         }
 
+        ~VM_Frm_User()
+        {
+
+        }
+
         eOPRGRADE cmb_CurrUser;
         private void On_CmbSelchanged(object obj)
         {

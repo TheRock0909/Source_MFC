@@ -24,6 +24,11 @@ namespace Source_MFC.ViewModels
             Evt_MouseDown4PIO = new Command(On_MouseDown4PIO);
         }
 
+        ~VM_UsCtrl_Sys_PIO()
+        {
+            _ctrl.Evt_Sys_PIO_Item_DataExchange -= On_DataExchange;
+        }
+
         private void On_MouseDown4PIO(object obj)
         {
             On_DataExchange(obj, (eDATAEXCHANGE.View2Model, null));

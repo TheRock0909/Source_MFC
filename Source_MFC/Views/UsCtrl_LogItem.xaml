@@ -11,7 +11,7 @@
         <TextBox x:Name="ReceTextBox" 
                  Margin="3 3"
                  Background="#FF5B5757"
-                 Height="115" MinWidth="950"
+                 Height="105" MinWidth="940"
                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                  VerticalScrollBarVisibility="Visible"
                  local:MvvmTxtBox.Buffer="{Binding b_ReceData}" />
@@ -19,6 +19,7 @@
         <!-- <TextBox x:Name="txt_msg" Text="{Binding b_text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="3 3" Height="115" MinWidth="950" AcceptsReturn="true" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                      VerticalScrollBarVisibility="Visible" TextWrapping="Wrap" Background="#FF5B5757" MaxLines="100" MinLines="50" IsTabStop="False" >
         </TextBox> -->
+        
         <!-- <StackPanel Orientation="Vertical" >
             <DataGrid x:Name="grd_Input" 
                       AutoGenerateColumns="false" 

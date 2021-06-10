@@ -17,12 +17,19 @@ namespace Source_MFC.ViewModels
             _Initialize(dev);
         }
 
+        ~VM_UsrCtrl_DevCont()
+        {
+         
+        }
+
         private void _Initialize(eDEV dev)
         {
             _DevType = dev;
             b_DevName = _DevType.ToString();
             SetConnection(false);
         }
+
+        
 
         public void SetConnection(bool cont)
         {

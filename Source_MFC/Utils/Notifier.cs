@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Source_MFC.Global;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -23,6 +25,10 @@ namespace Source_MFC.Utils
 
     public class Notifier : INotifyPropertyChanged
     {
+        public Notifier()
+        {
+
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
         public void OnPropertyChanged([CallerMemberName]string propertyName = "")
@@ -30,6 +36,12 @@ namespace Source_MFC.Utils
             if (!string.IsNullOrEmpty(propertyName))
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        public Action<PropertyChangedEventArgs> RaisePropertyChanged()
+        {
+            return args => PropertyChanged?.Invoke(this, args);
+        }
+
     }
 
     public interface ITextBoxAppend
@@ -70,7 +82,7 @@ namespace Source_MFC.Utils
             App.Current.Dispatcher.Invoke((Action)(() =>
             {
                 Evt_BuffAppendHdr?.Invoke(this, value);
-            }));            
+            }));
         }
 
         public void Append(string value, int index)
@@ -94,61 +106,79 @@ namespace Source_MFC.Utils
         public event EventHandler<string> Evt_BuffDeleteHdr;
     }
 
-    public class BtnViewMdl : INotifyPropertyChanged
+    public class JobMonitor : INotifyPropertyChanged
     {
         private bool _showDismissBtn;
         private double _dismissBtnPrgrs;
+        private double _DismaissBtnPrgrsMax;
+        private string _ContentTxt;
         private string _demoRestartCntDwnTxt;
-        public BtnViewMdl()
+        private int _dismissRequested = 0;
+        private bool _AlignSen = false;
+        private TIMEARG _PrgrsTime = new TIMEARG();
+        public JobMonitor()
         {
             var autoStartingActionCountdownStart = DateTime.Now;
             var demoRestartCountdownComplete = DateTime.Now;
-            var dismissRequested = false;
-
-            DismissComand = new AnotherCommandImplementation(_ => dismissRequested = true);
+            DismissComand = new AnotherCommandImplementation(_ => DismissRequested = 0);
             ShowDismissButton = true;
 
             new DispatcherTimer(
-                TimeSpan.FromMilliseconds(100),
+                TimeSpan.FromMilliseconds(5),
                 DispatcherPriority.Normal,
                 new EventHandler((o, e) =>
                 {
-                    if (dismissRequested)
+                    switch (DismissRequested)
                     {
-                        ShowDismissButton = false;
-                        dismissRequested = false;
-                        demoRestartCountdownComplete = DateTime.Now.AddSeconds(3);
-                        DismissButtonProgress = 0;
-                    }
-
-                    if (ShowDismissButton)
-                    {
-                        var totalDuration = autoStartingActionCountdownStart.AddSeconds(5).Ticks - autoStartingActionCountdownStart.Ticks;
-                        var currentDuration = DateTime.Now.Ticks - autoStartingActionCountdownStart.Ticks;
-                        var autoCountdownPercentComplete = 100.0 / totalDuration * currentDuration;
-                        DismissButtonProgress = autoCountdownPercentComplete;
-
-                        if (DismissButtonProgress >= 100)
-                        {
-                            demoRestartCountdownComplete = DateTime.Now.AddSeconds(3);
+                        case 0: break;
+                        case 1:
                             ShowDismissButton = false;
-                            UpdateDemoRestartCountdownText(demoRestartCountdownComplete, out _);
-                        }
-                    }
-                    else
-                    {
-                        UpdateDemoRestartCountdownText(demoRestartCountdownComplete, out bool isComplete);
-                        if (isComplete)
-                        {
-                            autoStartingActionCountdownStart = DateTime.Now;
+                            _PrgrsTime.Reset();
+                            DismissButtonProgress = 0;
+                            DismissRequested = 10;
+                            break;
+                        case 10:
+                            {
+                                if (false == _PrgrsTime.IsOver(500)) break;
+                                _PrgrsTime.Reset();
+                                ShowDismissButton = true;
+                                DismissRequested = 20;
+                            }
+                            break;
+                        case 20:
+                            {
+                                var isOver = _PrgrsTime.IsOver((int)(DismaissBtnPrgrsMax * 1000.0));
+                                var nSec = _PrgrsTime.nCurr / 1000.0;
+                                DismissButtonProgress = (nSec / DismaissBtnPrgrsMax) * 100.0;
+                                DemoRestartCountdownText = $"{_ContentTxt} [{DismaissBtnPrgrsMax}/{(int)nSec} sec]";
+                                if (false == isOver) break;
+                                _PrgrsTime.Reset();
+                                DismissRequested = 30;
+                                break;
+                            }
+                        case 30:
+                            if (false == _PrgrsTime.IsOver(500)) break;
                             ShowDismissButton = true;
-                        }
+                            DismissButtonProgress = 0;
+                            DemoRestartCountdownText = string.Empty;
+                            DismissRequested = DEF_CONST.SEQ_FINISH;
+                            break;
+                        default: break;
                     }
 
+                    b_AlignSen = _AlignSen;
+                    b_JobState = _JobState;
+                    b_AIVState = _AIVState;
                 }), Dispatcher.CurrentDispatcher);
         }
 
         public ICommand DismissComand { get; }
+
+        public int DismissRequested
+        {
+            get { return _dismissRequested; }
+            set { this.MutateVerbose(ref _dismissRequested, value, RaisePropertyChanged()); }
+        }
 
         public bool ShowDismissButton
         {
@@ -168,12 +198,39 @@ namespace Source_MFC.Utils
             private set { this.MutateVerbose(ref _demoRestartCntDwnTxt, value, RaisePropertyChanged()); }
         }
 
-        private void UpdateDemoRestartCountdownText(DateTime endTime, out bool isComplete)
+        public double DismaissBtnPrgrsMax
         {
-            var span = endTime - DateTime.Now;
-            var seconds = Math.Round(span.TotalSeconds < 0 ? 0 : span.TotalSeconds);
-            //DemoRestartCountdownText = "Demo in " + seconds;
-            isComplete = seconds == 0;
+            get { return _DismaissBtnPrgrsMax; }
+            set { this.MutateVerbose(ref _DismaissBtnPrgrsMax, value, RaisePropertyChanged()); }
+        }
+
+        public void StartProgress(string coment, int nMax)
+        {
+            DismaissBtnPrgrsMax = nMax;
+            _ContentTxt = coment;
+            DismissRequested = DEF_CONST.SEQ_INIT;
+        }
+
+        public void JobSet(JOB order, VEHICLESTATE vecst)
+        {
+            b_JobID = order.cmdID;
+            b_TrayID = order.materialID;
+            b_Dest = order.goal.label;
+            JobState(order.state, vecst.JobState);
+        }
+
+        string _JobState = string.Empty;
+        string _AIVState = string.Empty;
+        public void JobState(CommandState state, RobotState rbtSt)
+        {
+            _JobState = Ctrls.Remove_(state.ToString());
+            _AIVState = Ctrls.Remove_(rbtSt.ToString());
+        }
+
+
+        public void SetPosGoodSen(bool bTrg)
+        {
+            _AlignSen = bTrg;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -181,7 +238,102 @@ namespace Source_MFC.Utils
         {
             return args => PropertyChanged?.Invoke(this, args);
         }
+
+        bool senPosOk = false;
+        public bool b_AlignSen
+        {
+            get { return senPosOk; }
+            set {
+                this.MutateVerbose(ref senPosOk, value, RaisePropertyChanged());
+            }
+        }
+
+        string JobID = string.Empty;
+        public string b_JobID
+        {
+            get { return JobID; }
+            set { this.MutateVerbose(ref JobID, value, RaisePropertyChanged()); }
+        }
+
+        string JobType = string.Empty;
+        public string b_JobType
+        {
+            get { return JobType; }
+            set { this.MutateVerbose(ref JobType, value, RaisePropertyChanged()); }
+        }
+
+        string TrayID = string.Empty;
+        public string b_TrayID
+        {
+            get { return TrayID; }
+            set { this.MutateVerbose(ref TrayID, value, RaisePropertyChanged()); }
+        }
+
+        string Dest = string.Empty;
+        public string b_Dest
+        {
+            get { return Dest; }
+            set { this.MutateVerbose(ref Dest, value, RaisePropertyChanged()); }
+        }
+
+        string jobState = string.Empty;
+        public string b_JobState
+        {
+            get { return jobState; }
+            set {
+                this.MutateVerbose(ref jobState, value, RaisePropertyChanged());
+            }
+        }
+
+        string AIVState = string.Empty;
+        public string b_AIVState
+        {
+            get { return AIVState; }
+            set {
+                this.MutateVerbose(ref AIVState, value, RaisePropertyChanged());
+            }
+        }
+
+        string PauseState = string.Empty;
+        public string b_PauseState
+        {
+            get { return PauseState; }
+            set { this.MutateVerbose(ref PauseState, value, RaisePropertyChanged()); }
+        }
     }
 
+    
+    public class SRC4MONI : Notifier
+    {
+        private string strEnum = string.Empty;
+        public string _strEnum
+        {
+            set { strEnum = value; }
+        }
+
+        public eINPUT GetIn()
+        {
+            return strEnum.ToEnum<eINPUT>();
+        }
+
+        public eOUTPUT GetOut()
+        {
+            return strEnum.ToEnum<eOUTPUT>();
+        }
+
+        private bool state = false;
+        public bool STATE
+        {
+            get => state;
+            set { this.MutateVerbose(ref state, value, RaisePropertyChanged()); }
+        }
+
+        private string label = string.Empty;
+        public string LABEL
+        {
+            get => label;
+            set { this.MutateVerbose(ref label, value, RaisePropertyChanged()); }
+        }        
+    }
 }
 

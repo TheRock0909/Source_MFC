@@ -47,16 +47,13 @@
             <ColumnDefinition Width="70*"/>
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Column="0" VerticalAlignment="Top" Grid.ColumnSpan="2">
+        <Grid Grid.Column="0" VerticalAlignment="Top">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <StackPanel 
-                ScrollViewer.CanContentScroll="True" 
-                ScrollViewer.VerticalScrollBarVisibility="Visible">
-
+            <StackPanel ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Visible">
                 <Grid Grid.Row="0">
                     <TreeView Name="tree_Goals" ItemsSource="{Binding b_TreeGoals}" Grid.Row="0" MinWidth="220" MaxHeight="490" Foreground="White">
                         <TreeView.ItemTemplate>

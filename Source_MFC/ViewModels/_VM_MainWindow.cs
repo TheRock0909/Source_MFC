@@ -61,9 +61,18 @@ namespace Source_MFC.ViewModels
             _mainWin.Visibility = Visibility.Visible;
         }
 
+        ~_VM_MainWindow()
+        {
+            _ctrl.Evt_MainWin_DataExchange -= On_DataExchange;
+            _ctrl.Evt_UpdateConnection -= On_DevConnection;
+            _tmrUpdate.Tick -= Tmr_Tick;
+            _tmrUpdate.Stop();
+        }
+
         UsCtrl_DevCont[] _Dev;
         private void _Initialize()
         {
+            _status.bLoaded = false;
             _ctrl.Evt_MainWin_DataExchange += On_DataExchange;
             _ctrl.Evt_UpdateConnection += On_DevConnection;
 
@@ -86,26 +95,28 @@ namespace Source_MFC.ViewModels
             _mainWin.pnl_Dev_1.Children.Add(_Dev[(int)eDEV.IO]);
 
             _tmrUpdate = new DispatcherTimer();
-            _tmrUpdate.Interval = TimeSpan.FromMilliseconds(0.1);    //시간간격 설정
+            _tmrUpdate.Interval = TimeSpan.FromMilliseconds(10);    //시간간격 설정
             _tmrUpdate.Tick += new EventHandler(Tmr_Tick);           //이벤트 추가  
             _tmrUpdate.Start();
 
+            // View 로딩완료
+            _ctrl.View_Init(); 
+            _ctrl.Hw_Init();
+            _ctrl.Sw_Init();
+            _status.bLoaded = true;
             _status.swVer = "Ver.20210430";
-            b_title = $"{_ctrl._EQPName}";
-            _ctrl.DisignLoadComp(); // 로딩완료
+            b_title = $"{_ctrl._EQPName}";            
         }
 
         private void _Finalize()
         {
-            _log.Write(CmdLogType.prdt, $"Application을 종료합니다. [{_ctrl._EQPName}:{_status.swVer}]");
-            _ctrl.Evt_MainWin_DataExchange -= On_DataExchange;
-            _ctrl.Evt_UpdateConnection -= On_DevConnection;
-            _tmrUpdate.Stop();            
+            _log.Write(CmdLogType.prdt, $"Application을 종료합니다. [{_ctrl._EQPName}:{_status.swVer}]");            
             _ctrl._Finalize();
             Application.Current.Shutdown();
         }
 
         bool bTogle = false;
+        int nGCCallCnt = 0;
         TIMEARG _1secTimer = new TIMEARG() { nDelay = 1000 } ;
         TIMEARG _500msecTimer = new TIMEARG() { nDelay = 500 };
         private void Tmr_Tick(object sender, EventArgs e)
@@ -114,7 +125,7 @@ namespace Source_MFC.ViewModels
             {
                 b_CurrTime = $" {DateTime.Now:yyyy-MM-dd HH:mm:ss}";
                 var memory = Ctrls.FormatBytes(Process.GetCurrentProcess().PrivateMemorySize64);
-                b_SwVer = $" {_status.swVer} {memory}/{_ctrl._backProcScan} msec";
+                b_SwVer = $" {_status.swVer} {memory}/{_ctrl._backProcScan} msec/{_ctrl._SeqScanTime}";
                 switch (_status.eqpState)
                 {
                     case eEQPSATUS.Init: b_brush_lmp = new SolidColorBrush(Colors.LightGray); break;
@@ -132,6 +143,14 @@ namespace Source_MFC.ViewModels
                     default: break;
                 }
                 bTogle ^= true;
+
+//                 nGCCallCnt++;
+//                 if ( 5 <= nGCCallCnt)
+//                 {
+//                     nGCCallCnt = 0;
+//                     System.GC.Collect();
+//                     System.GC.WaitForPendingFinalizers();
+//                }                
             }
 
             if (_500msecTimer.IsOver(_500msecTimer.nDelay))
@@ -158,8 +177,10 @@ namespace Source_MFC.ViewModels
         {
             if (b_UsrCtrl_View != (UserControl)obj)
             {
-                b_UsrCtrl_View = (UserControl)obj;                                
-                _ctrl.DoingDataExchage(b_UsrCtrl_View.Uid.ToEnum<eVIWER>(), eDATAEXCHANGE.Model2View);
+                b_UsrCtrl_View = (UserControl)obj;
+                var uid = b_UsrCtrl_View.Uid.ToEnum<eVIWER>();
+                _ctrl.DoingDataExchage(uid, eDATAEXCHANGE.Model2View);                
+                _ctrl.DoingDataExchage(eVIWER.IO, eDATAEXCHANGE.Model2View, eUID4VM.IO_ResetDirectIO);
             }
         }
 
@@ -170,15 +191,15 @@ namespace Source_MFC.ViewModels
             switch (btn)
             {
                 case eUID4VM.MAINWIN_Popup_Logout:
-                    {
-                        switch (_ctrl.CurrView)
-                        {
-                            case eVIWER.Monitor: case eVIWER.Manual: break;
-                            default: On_ChangeViewer(b_MenuItem[0].SubItems[0].Screen); break;
-                        }
+                    {                        
                         On_CloseMenu(null);
                         CloseMenuAction();
                         SetLoginUser(null, true);
+                        switch (_ctrl.CurrView)
+                        {
+                            case eVIWER.Monitor: break;
+                            default: On_ChangeViewer(b_MenuItem[0].SubItems[0].Screen); break;
+                        }
                         break;
                     }
                 case eUID4VM.MAINWIN_Popup_Login:
@@ -341,7 +362,6 @@ namespace Source_MFC.ViewModels
                 OnPropertyChanged();
             }
         }
-
 
         UserControl userControl;// = new UsCtrl_Dash_Moni();
         public UserControl b_UsrCtrl_View

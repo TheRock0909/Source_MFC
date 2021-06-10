@@ -31,6 +31,11 @@ namespace Source_MFC.ViewModels
             On_LogItemSelChanged((int)CmdLogType.prdt);
         }
 
+        ~VM_UsrCtrl_Logs()
+        {
+
+        }
+
         private void On_LogItemSelChanged(object obj)
         {
             if (obj != null && (int)obj >= 0)

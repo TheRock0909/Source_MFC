@@ -9,6 +9,18 @@
              xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity" 
              mc:Ignorable="d" 
              d:DesignHeight="553" d:DesignWidth="960">
+    <UserControl.Resources>
+        <DataTemplate x:Key="grpboxTempOutput">
+            <StackPanel Orientation="Horizontal">
+                <materialDesign:PackIcon Kind="{Binding b_OutputIcon}" Height="32" Width="32" VerticalAlignment="Center" />
+                <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Text="{Binding b_OutputTitle}"/>
+                <Separator materialDesign:ColorZoneAssist.Background="WhiteSmoke"></Separator>
+                <TextBlock Margin="50,0,0,0" VerticalAlignment="Center" Text="DIRECT I/O" FontSize="15" Foreground="GhostWhite"/>
+                <ToggleButton IsChecked="{Binding b_DirectIO, Mode=TwoWay}" Margin="10" />
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+    
     <Grid Background="White" Height="540" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -27,54 +39,37 @@
                     </DataTemplate>
                 </GroupBox.HeaderTemplate>
 
-
-                <Grid>
-                    <StackPanel Orientation="Vertical" >
-                        <DataGrid x:Name="grd_Input" 
-                                  AutoGenerateColumns="false" 
-                                  IsReadOnly="true" Height="465"
-                                  ScrollViewer.CanContentScroll="True" 
-                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                  ItemsSource="{Binding b_InputSrc.View}">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="ID" Binding="{Binding eID}" />
-                                <DataGridCheckBoxColumn Header="STATE" Binding="{Binding state}" />
-                                <DataGridTextColumn Header="NAME" Binding="{Binding Label}" />
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </StackPanel>
-                </Grid>
+                <DataGrid ItemsSource="{Binding b_Inputs}" FontSize="10" IsReadOnly="true">
+                    <DataGrid.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <CheckBox IsChecked="{Binding STATE}"/>
+                                <TextBlock Text="{Binding LABEL}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGrid.ItemTemplate>
+                </DataGrid>
             </GroupBox>
         </Grid>
         
         <Grid Grid.Column="1">
-            <GroupBox Header="OUTPUT SIGNALS" Style="{DynamicResource MaterialDesignCardGroupBox}" 
+            <GroupBox Name="grp_Output"
+                      Header="{Binding}" 
+                      HeaderTemplate="{StaticResource grpboxTempOutput}"
+                      Style="{DynamicResource MaterialDesignCardGroupBox}" 
                       Margin="5" FontSize="20"
                       materialDesign:ColorZoneAssist.Mode="Dark">
-                <GroupBox.HeaderTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Output" Height="32" Width="32" VerticalAlignment="Center" />
-                            <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Text="{Binding}"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </GroupBox.HeaderTemplate>
-
-
-
                 <Grid>
                     <StackPanel Orientation="Vertical">
-                        <DataGrid x:Name="grd_Output" 
-                                  AutoGenerateColumns="False" 
-                                  IsReadOnly="true" Height="465"
-                                  ScrollViewer.CanContentScroll="True" 
-                                  ScrollViewer.VerticalScrollBarVisibility="Auto"                                  
-                                  ItemsSource="{Binding b_OutputSrc.View}" SelectionMode="Single">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="ID" Binding="{Binding eID}" />
-                                <DataGridCheckBoxColumn Header="STATE" IsReadOnly="False" Binding="{Binding getOutput}" />
-                                <DataGridTextColumn Header="NAME" Binding="{Binding Label}"  />
-                            </DataGrid.Columns>
+                        <DataGrid Name="grd_Output" ItemsSource="{Binding b_Outputs}" FontSize="10" IsReadOnly="true" VerticalScrollBarVisibility="Auto" Height="530" >
+                            <DataGrid.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <CheckBox IsChecked="{Binding STATE}"/>
+                                        <TextBlock Text="{Binding LABEL}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGrid.ItemTemplate>
 
                             <i:Interaction.Triggers>
                                 <i:EventTrigger EventName="SelectionChanged">

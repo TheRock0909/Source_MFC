@@ -17,6 +17,11 @@ namespace Source_MFC.ViewModels
             _Initialize(itemMenu);
         }
 
+        ~VM_UsrCtrl_MenuItem()
+        {
+
+        }
+
         private void _Initialize(ItemMenu itemMenu)
         {
             _itemMenu = itemMenu;

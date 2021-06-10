@@ -143,23 +143,16 @@ namespace Source_MFC.Global
 
     public enum eSEQLIST : int
     {
-          EQP_Init
-        , Conv_Init
-        , Move2ParkingPos
-        , Main
-        , Move2Dst
-        , AlignStage
+          Main
+        , Move2Dst        
         , PIO
-        , LowerPick
-        , UpperPick
-        , LowerDropoff
-        , UpperDropoff
-        , ZMove4DualWrk
+        , Pick
+        , Drop
 
         , MAX_SEQ
     }
 
-    public enum eSUBSEQLIST
+    public enum eTASKLIST
     {
           SWITCH
         , MPLUSCOMM
@@ -192,10 +185,10 @@ namespace Source_MFC.Global
         , MFC_Reserved_8
         , MFC_Reserved_9
         , MFC_ConvMtrErr
-        , MFC_Reserved_11
-        , MFC_Reserved_12
-        , MFC_Reserved_13
-        , MFC_Reserved_14
+        , MFC_START
+        , MFC_STOP
+        , MFC_RESET
+        , MFC_AUTO_MANUAL
         , MFC_PIO_GO
 
         , MFC_PIO_1
@@ -205,7 +198,7 @@ namespace Source_MFC.Global
         , MFC_PIO_5
         , MFC_PIO_6
         , MFC_PIO_7
-        , MFC_PIO_8
+        , MFC_PIO_8        
 
 
         // 실제 IO List에는 없는 가상 접점
@@ -233,7 +226,12 @@ namespace Source_MFC.Global
         , MFC_PIO_5
         , MFC_PIO_6
         , MFC_PIO_7
-        , MFC_PIO_8        
+        , MFC_PIO_8
+
+        , MFC_SWLMP_START
+        , MFC_SWLMP_STOP
+        , MFC_SWLMP_RESET
+        , MFC_SWLMP_AUTO_MANUAL
 
         // 실제 IO List에는 없는 가상 접점
         , VTA_PIO_Ready = 10000
@@ -243,57 +241,7 @@ namespace Source_MFC.Global
     public enum eERROR
     {
           None
-        , EMG
-        , TEMP2LRAM
-        , SoftWareLimtitOver // 발생축 설명필요
-        , HwLimit_N // 발생축 설명필요
-        , HwLimit_P // 발생축 설명필요
-        , ServoAlarm // 발생축 설명필요
-        , ServoEnable // 발생축 설명필요
-        , HommingTimeout // 발생축 설명필요
-        , MotionTimeout // 발생축 설명필요
-        , SlidingCurtainClose
-        , SlidingCurtainOpen
-        , LDSMeasringDistOver
-        , LDSCommFailed // 발생LDS 설명필요
-        , PIO_T2_Timeout
-        , PIO_T4_Timeout
-        , PIO_T5_Timeout
-        , PIO_T8_Timeout
-        , PIO_ABORT
-        , MegazineDetected // 매거진이 감지되어 Pickup 동작을 할 수 없음, 상하부
-        , NoMegazine       // 매거진이 없어 Dropoff 동작을 할 수 없음, 상하부 
-        , BASEZaxTsk_SyncFailed
-        , QGVUnabvailable
-        , QGVCmdTimeout
-        , QGVRotateCmdFailed
-        , QGVLocalize
-        , BaseStageAlignSenSearchingFailed
-        , PathFindingFaild
-        , JobIDMissMatch
-
-        , LowerMgzGuideOpen     // 신규 추가 에러!!!!! 2020.08.25
-        , LowerMgzGuideClose
-        , UpperMgzGuideOpen
-        , UpperMgzGuideClose
-        , EMG2
-        , EMG3
-        , EMGSTATUS
-
-        , TEMP_ALARM
-        , FAN_ALARM
-        , FAN_LOWER_ALARM   // 신규
-        , DOOR_OPEN
-        , MOTION_SERVO_PWR
-        , MOTION_SERVO_CTRL_PWR
-        , BUMPER_SIGNAL         // 신규
-        , SERVO_ENABLE          // 신규
-        , AGV_LEFT_SERVO_ALRAM// 신규
-        , AGV_RIGHT_SERVO_ALRAM// 신규M
-        , AGV_CHARGER_ALARM
-        , EMG_FRONT
-        , EMG_REAR
-        , LDS_DISTANCE_LIMIT_OVER
+        , EMG        
     }
 
 
@@ -338,8 +286,7 @@ namespace Source_MFC.Global
         , UNLOADING
         , STANDBY
         , CAHRGE
-        , CANCEL
-        , ONLYPATH
+        , CANCEL        
     }
 
     public enum eWORKTYPE : int
@@ -390,7 +337,7 @@ namespace Source_MFC.Global
         , TWR_RED_OFF = 20          , TWR_RED_ON                , TWR_RED_BLINK          
         , TWR_BUZZER_OFF = 30       , TWR_BUZZER_ON     
 
-        , IO_SetList = 100          , IO_RefreshList
+        , IO_SetList = 100          , IO_RefreshList            , IO_ResetDirectIO
 
         , GOAL_LIST = 200           , GOAL_ITEMS        
         , GOAL_ADD                  , GOAL_DEL              
@@ -405,19 +352,22 @@ namespace Source_MFC.Global
         , FAC_SeqMode               , FAC_Language              , FAC_MPlusIP
         , FAC_MPlusPort             , FAC_VehicleIP     
 
-        , DASH_MONI_ALL = 500       , DASH_MONI_EqpState        , DASH_MONI_EqpMode
+        , DASH_MONI_ALL = 500       , DASH_MONI_EqpState        
         , DASH_MONI_VECSTATE        , DASH_MONI_IO
         , DASH_MONI_START           , DASH_MONI_STOP            , DASH_MONI_RESET
-        , DASH_MONI_DROPJOB
+        , DASH_MONI_DROPJOB         , DASH_MONI_JOB_Assigned    , DASH_MONI_JOB_Update
+        , DASH_MONI_JOB_Reset       , DASH_MONI_JOB_PioStart
 
         , DASH_MNL_ALL = 600        , DASH_MNL_GoalItem         , DASH_MNL_BTN_MAKEORDER    
         , DASH_MNL_RDO_GoalType_0   , DASH_MNL_RDO_GoalType_1   , DASH_MNL_RDO_GoalType_2
-        , DASH_MNL_RDO_GoalType_3
+        , DASH_MNL_RDO_GoalType_3   
 
         , MAINWIN_ALL = 700         , MAINWIN_EqpState          , MAINWIN_User
         , MAINWIN_CloseMenu         , MAINWIN_OpenMenu          , MAINWIN_Popup_Login
         , MAINWIN_Popup_Logout      , MAINWIN_Popup_Account     , MAINWIN_Popup_Save
         , MAINWIN_Popup_Minimize    , MAINWIN_Popup_Shutdown
+
+        , ETC_INPUTBOX  = 100
     }
 
     public enum eDATAEXCHANGE

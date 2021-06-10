@@ -26,8 +26,22 @@ namespace Source_MFC.Global
                 max /= scale;
             }
             return "0 Bytes";
-        }        
+        }   
+        
+        public static string Remove_(string enumstr)
+        {
+            return enumstr.Replace("_", " ").ToUpper();
+        }
     }
+
+    public class Noti
+    {
+        public bool bTrg { get; set; } = false;
+        public string msg { get; set; } = string.Empty;
+        public int nTemp { get; set; } = 0;
+        public double dTemp { get; set; } = 0;
+    }
+
 
     public class MvvmTxtBox
     {

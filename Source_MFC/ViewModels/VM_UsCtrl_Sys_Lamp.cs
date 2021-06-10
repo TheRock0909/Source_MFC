@@ -36,6 +36,11 @@ namespace Source_MFC.ViewModels
             };                            
         }
 
+        ~VM_UsCtrl_Sys_Lamp()
+        {
+            _ctrl.Evt_Sys_Lamp_DataExchange -= On_DataExchange;
+        }
+
         private void On_RdoChanged(object obj)
         {
             var uid = (eUID4VM)(Convert.ToInt32(obj));

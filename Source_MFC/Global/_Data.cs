@@ -109,8 +109,7 @@ namespace Source_MFC.Global
                             {
                                 dtif.Create();
                             }
-                            Trace
-                                .Write($"path --------------------------------");
+                            Trace.Write($"path --------------------------------");
 
                             bool rtn = false;
                             rtn = _inst.StatusLoad();

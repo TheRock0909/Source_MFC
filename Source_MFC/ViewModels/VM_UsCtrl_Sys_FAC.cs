@@ -31,6 +31,11 @@ namespace Source_MFC.ViewModels
             Evt_DataExchange4FAC = new Command(On_DataExchange4FAC);
         }
 
+        ~VM_UsCtrl_Sys_FAC()
+        {
+            _ctrl.Evt_Sys_FAC_Item_DataExchange -= On_DataExchange;
+        }
+
         private void On_DataExchange4FAC(object obj)
         {
             On_DataExchange(obj, (eDATAEXCHANGE.View2Model, null));

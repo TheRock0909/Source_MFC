@@ -63,7 +63,15 @@
                  Margin="0 10 0 0" FontSize="16" Grid.Row="1"
                  wpf:HintAssist.Hint="String" 
                  Foreground="Black" 
-                 Style="{DynamicResource MaterialDesignFloatingHintTextBox}"/>
+                 Uid="1000"
+                 Style="{DynamicResource MaterialDesignFloatingHintTextBox}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="GotFocus">
+                    <i:InvokeCommandAction Command="{Binding Path=DataContext.Evt_DataExchange4InputBox
+                        , RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Uid, ElementName=txt_Content}"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </TextBox>
 
 
         <StackPanel Orientation="Horizontal" Grid.Row="2"

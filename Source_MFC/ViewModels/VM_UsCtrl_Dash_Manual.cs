@@ -28,8 +28,15 @@ namespace Source_MFC.ViewModels
             Evt_SelectedItem = new Command(On_SelectedItem);
         }
 
-        public bool CanExecute(object parameter)
+        ~VM_UsCtrl_Dash_Manual()
         {
+            _ctrl.Evt_Dash_Manual_DataExchange -= On_DataExchange;
+            b_lstGoals.CollectionChanged -= On_CollectionChanged;
+            b_lstGoals = null;
+        }
+
+        public bool CanExecute(object parameter)
+        {            
             eUID4VM uid = (eUID4VM)Convert.ToInt32(parameter);
             switch (_ctrl._EQPStatus)
             {                
@@ -135,9 +142,7 @@ namespace Source_MFC.ViewModels
                             b_Opt_Skip_Move2 = _opt.bSkipGo2Dest;
                             b_Opt_Skip_PIO = _opt.bSkipPIO;
                             b_Opt_Skip_Transfer = _opt.bSkipTransfer;
-                            break;
-                        case eUID4VM.DASH_MNL_BTN_MAKEORDER:
-                            break;
+                            break;                        
                         case eUID4VM.DASH_MNL_GoalItem:
                             _CurrItem = new GOAL_NODE();
                             b_SelGoalName = string.Empty;
@@ -147,7 +152,7 @@ namespace Source_MFC.ViewModels
                             b_GoalName = string.Empty;
                             b_Position = string.Empty;
                             b_EscapeDist = string.Empty;
-                            break;
+                            break;                        
                         case eUID4VM.DASH_MNL_RDO_GoalType_0:                            
                         case eUID4VM.DASH_MNL_RDO_GoalType_1:
                         case eUID4VM.DASH_MNL_RDO_GoalType_2:
@@ -210,7 +215,7 @@ namespace Source_MFC.ViewModels
             eUID4VM uid = (eUID4VM)Convert.ToInt32(obj);
             switch (uid)
             {               
-                case eUID4VM.DASH_MNL_BTN_MAKEORDER:
+                case eUID4VM.DASH_MNL_BTN_MAKEORDER:                    
                     break;
                 case eUID4VM.DASH_MNL_RDO_GoalType_0:                    
                 case eUID4VM.DASH_MNL_RDO_GoalType_1:                    
