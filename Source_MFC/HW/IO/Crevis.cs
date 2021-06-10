@@ -37,6 +37,7 @@ namespace Source_MFC.HW.IO
         private int OutputImageSize = 0;
         private SUBTSKARG _TmrArg = new SUBTSKARG(eTASKLIST.MAX_SUB_SEQ);        
         public event EventHandler<(eDEV dev, bool connection)> Evt_Connected;
+        public event EventHandler<(long inputs, long getouts )> Evt_Status;
         override public bool Open()
         {
             _Connected = false;
@@ -141,15 +142,22 @@ LBL_ERR:
 
         
         private void _IOChk_Elapsed(object sender, ElapsedEventArgs e)
-        {            
+        {
+            var arg = _TmrArg;
             if (false == _Connected)
             {                
                 _IOChk.Stop(); //2021.05.14 IO 재연결
                 Open();
                 return;
             }
-
-            var arg = _TmrArg;
+            else
+            {
+                if (arg.tSen.IsOver(50))
+                {
+                    Evt_Status?.Invoke(this, (_In.INT64, _GetOut.INT64));
+                }
+            }    
+            
             switch (arg.nStep)
             {
                 case DEF_CONST.SEQ_INIT:
@@ -167,9 +175,8 @@ LBL_ERR:
                             _Out.UINT8_1 = pOutputImage[1];
                             _Out.UINT8_2 = pOutputImage[2];                                
                             break;                            
-                        default: break;
-                    }
-                    arg.nTrg = 0; arg.nStep = 10;
+                        default: arg.nTrg = 0; arg.nStep = 10; break;
+                    }                    
                     break;
                 case 10:
                     switch (arg.nTrg)
@@ -266,7 +273,8 @@ LBL_ERR:
         {
             if (true == _Connected)
             {
-                var src = _ctrl.IO_GetSrc_OUT(nCh);
+                var src = _ctrl.IO_SrcGet_OUT(nCh);
+                src.state = bTrg;
                 switch (src.RealID)
                 {
                     case -1: break;
@@ -283,7 +291,7 @@ LBL_ERR:
 
         public override bool GetOutput(eOUTPUT nCh)
         {
-            var src = _ctrl.IO_GetSrc_OUT(nCh);
+            var src = _ctrl.IO_SrcGet_OUT(nCh);
             switch (src.RealID)
             {
                 case -1: return false;
@@ -293,7 +301,7 @@ LBL_ERR:
 
         public override bool GetInput(eINPUT nCh)
         {
-            var src = _ctrl.IO_GetSrc_IN(nCh);
+            var src = _ctrl.IO_SrcGet_IN(nCh);
             switch (src.RealID)
             {
                 case -1: break;

@@ -67,6 +67,7 @@ namespace Source_MFC
                 IsBackground = true
             };
             _sys.io._bDirectIO = true;
+            _status.bSimul = true;
         }
 
         public void _Finalize()
@@ -103,12 +104,16 @@ namespace Source_MFC
                 foreach (eDEV dev in Enum.GetValues(typeof(eDEV)))
                 {
                     Evt_UpdateConnection?.Invoke(this, (dev, false));
-                }
-                
+                }                
                 io = new Crevis(this);
                 var crv = io as Crevis;
                 crv.Evt_Connected += On_Connection;
+                crv.Evt_Status += On_IO_UpdateStatus;
 
+                if ( false == _status.bSimul )
+                {
+                    crv.Open();
+                }                
             }
             catch (Exception e)
             {
@@ -127,6 +132,14 @@ namespace Source_MFC
         public bool Hw_Final()
         {
             var rtn = true;
+            var crv = io as Crevis;
+            if ( null != crv )
+            {
+                crv.Evt_Connected -= On_Connection;
+                crv.Evt_Status -= On_IO_UpdateStatus;
+                crv.Close();
+            }
+
             _log.Write(CmdLogType.prdt, $"H/W 종료를 시작합니다. [{_EQPName}:{_status.swVer}]");
             try
             {
@@ -266,7 +279,7 @@ namespace Source_MFC
                 default: break;
             }
             Evt_UpdateConnection?.Invoke(this, (e.dev, e.connection));
-        }
+        }        
 
 
         private void On_WriteLogMsg(object sender, WriteLogArgs e)
@@ -349,17 +362,7 @@ namespace Source_MFC
             }
 
             if (true == tmr4middle.IsOver())
-            {
-                foreach (var item in this.IO_LstGet( eVIWER.IO, eIOTYPE.INPUT))
-                {
-                    item.state = !item.state;
-                }
-
-                foreach (var item in this.IO_LstGet(eVIWER.IO, eIOTYPE.OUTPUT))
-                {
-                    item.getOutput = !item.getOutput;
-                }
-
+            {                
                 switch (CurrView)
                 {
                     case eVIWER.IO: break;
@@ -373,78 +376,7 @@ namespace Source_MFC
                 switch (CurrView)
                 {
                     case eVIWER.IO: break;
-                    case eVIWER.Monitor:
-                        {
-                            var arg = testArg;
-                            switch (arg.nStep)
-                            {
-                                case 0:
-                                    arg.nStep = 5;
-                                    arg.tSen.nDelay = 500;
-                                    arg.tSen.Reset();
-                                    Job_SetState(CommandState.Assign);
-                                    break;
-                                case 5:
-                                    if (false == arg.tSen.IsOver()) break;
-                                    arg.nStep = 10;
-                                    arg.tSen.Reset();
-                                    VEC_SetState4Job(RobotState.Enroute);
-                                    break;
-                                case 10:
-                                    if (false == arg.tSen.IsOver()) break;
-                                    arg.nStep = 20;                                    
-                                    arg.tSen.Reset();
-                                    Job_SetState(CommandState.Enroute);
-                                    break;
-                                case 20:
-                                    if (false == arg.tSen.IsOver()) break;
-                                    arg.nStep = 25;
-                                    arg.tSen.Reset();
-                                    Job_SetState(CommandState.Arrived);
-                                    break;
-                                case 25:
-                                    if (false == arg.tSen.IsOver()) break;
-                                    arg.nStep = 30;
-                                    arg.tSen.Reset();
-                                    VEC_SetState4Job(RobotState.Acquiring);
-                                    break;
-                                case 30:
-                                    if (false == arg.tSen.IsOver()) break;
-                                    arg.nStep = 40;
-                                    arg.tSen.Reset();
-                                    Job_SetState(CommandState.Transferring);
-                                    break;
-                                case 40:
-                                    if (false == arg.tSen.IsOver()) break;
-                                    arg.nStep = 50;
-                                    arg.tSen.Reset();
-                                    Job_SetState(CommandState.TransStart);
-                                    break;
-                                case 50:
-                                    if (false == arg.tSen.IsOver()) break;
-                                    arg.nStep = 60;
-                                    arg.tSen.Reset();
-                                    Job_SetState(CommandState.CarrierChanged);
-                                    break;
-                                case 60:
-                                    if (false == arg.tSen.IsOver()) break;
-                                    arg.nStep = 70;
-                                    arg.tSen.Reset();
-                                    Job_SetState(CommandState.TransComplete);
-                                    break;
-                                case 70:
-                                    if (false == arg.tSen.IsOver()) break;
-                                    arg.nStep = 80;
-                                    arg.tSen.Reset();
-                                    VEC_SetState4Job(RobotState.NotAssigned);                                    
-                                    break;
-                                case 80: arg.nStep = 0; break;
-
-                                default:
-                                    break;
-                            }
-                            break;
-                        }
+                    case eVIWER.Monitor: break;
                     default: break;
                 }
             }
@@ -771,30 +703,50 @@ namespace Source_MFC
             return rtn;
         }
 
+        private void On_IO_UpdateStatus(object sender, (long nIn, long nGetout) e)
+        {
+            var _in = new Any64();
+            var _getout = new Any64();
+            _in.INT64 = e.nIn;
+            _getout.INT64 = e.nGetout;
+
+            var inputs = IO_LstGet(eVIWER.IO, eIOTYPE.INPUT);
+            foreach (IOSRC item in inputs)
+            {
+                item.state = _in[item.RealID];
+            }
+
+            var outputs = IO_LstGet(eVIWER.IO, eIOTYPE.OUTPUT);
+            foreach (IOSRC item in outputs)
+            {
+                item.getOutput = _getout[item.RealID];
+            }
+        }
+
         public bool IO_IN(eINPUT id)
         {
-            var src = _Data.Inst.sys.io.Get(id);
+            var src = _sys.io.Get(id);
             return src.state;
         }        
 
         public bool IO_GETOUT(eOUTPUT id)
         {
-            var src = _Data.Inst.sys.io.Get(id);
+            var src = _sys.io.Get(id);
             return src.getOutput;
         }
 
         public void IO_OUT(eOUTPUT id, bool bTrg)
-        {
-            
+        {            
+            io.SetOutput(id, bTrg);
         }
 
-        public IOSRC IO_GetSrc_IN(eINPUT id)
+        public IOSRC IO_SrcGet_IN(eINPUT id)
         {
             var src = _Data.Inst.sys.io.Get(id);
             return src;
         }
 
-        public IOSRC IO_GetSrc_OUT(eOUTPUT id)
+        public IOSRC IO_SrcGet_OUT(eOUTPUT id)
         {
             var src = _Data.Inst.sys.io.Get(id);
             return src;

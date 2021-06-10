@@ -23,7 +23,7 @@ namespace Source_MFC.HW
         public Any64 _Out;
         public Any64 _GetOut;
         private bool connected = false;
-
+        
         public bool _Connected { set { connected = value; } get { return connected; } }       
         public _IO()
         {
@@ -55,5 +55,6 @@ namespace Source_MFC.HW
         {
 
         }
+
     }
 }

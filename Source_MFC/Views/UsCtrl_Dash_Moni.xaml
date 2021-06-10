@@ -128,8 +128,8 @@
                       Margin="5 5" FontSize="12" HorizontalAlignment="Left" Width="230" Height="322" VerticalAlignment="Bottom">
                     <GroupBox.HeaderTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="Input" Height="20" Width="20" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Height="10">
+                                <materialDesign:PackIcon Kind="Input" Height="15" Width="15" VerticalAlignment="Center" />
                                 <TextBlock Margin="5,0,0,0" VerticalAlignment="Center" Text="{Binding}"/>
                             </StackPanel>
                         </DataTemplate>
@@ -150,12 +150,12 @@
 
             <Grid Grid.Row="1">
                 <GroupBox Header="OUTPUT SIGNALS" Style="{DynamicResource MaterialDesignCardGroupBox}" 
-                      Margin="5" FontSize="12" MinHeight="250"
+                      Margin="5" FontSize="12" MinHeight="250"                      
                       materialDesign:ColorZoneAssist.Mode="Dark">
                     <GroupBox.HeaderTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="Output" Height="20" Width="20" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Height="10">
+                                <materialDesign:PackIcon Kind="Output" Height="15" Width="15" VerticalAlignment="Center" />
                                 <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Text="{Binding}"/>
                             </StackPanel>
                         </DataTemplate>
@@ -255,10 +255,10 @@
                     <RowDefinition Height="25*"/>
                 </Grid.RowDefinitions>
 
-                <Button Name="btn_Start"    Grid.Row="0" Uid="505" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Start}"    Content="_START" Style="{DynamicResource MaterialDesignRaisedDarkButton}" FontSize="25" MinHeight="60" />
-                <Button Name="btn_Stop"     Grid.Row="1" Uid="506" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Stop}"     Content="_STOP" Style="{DynamicResource MaterialDesignRaisedButton}" FontSize="25" MinHeight="60" Margin="0,0,0,3" VerticalAlignment="Bottom" />
-                <Button Name="btn_Reset"    Grid.Row="2" Uid="507" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Reset}"    Content="_RESET" Style="{DynamicResource MaterialDesignRaisedLightButton}" FontSize="25" MinHeight="60" />
-                <Button Name="btn_DropJob"  Grid.Row="3" Uid="508" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_DropJob}"  Content="_DROP JOB" Style="{DynamicResource MaterialDesignRaisedButton}" FontSize="25" Background="#FF3C4961" MinHeight="60" />
+                <Button Name="btn_Start"    Grid.Row="0" Uid="504" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Start}"    Content="_START" Style="{DynamicResource MaterialDesignRaisedDarkButton}" FontSize="25" MinHeight="60" />
+                <Button Name="btn_Stop"     Grid.Row="1" Uid="505" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Stop}"     Content="_STOP" Style="{DynamicResource MaterialDesignRaisedButton}" FontSize="25" MinHeight="60" Margin="0,0,0,3" VerticalAlignment="Bottom" />
+                <Button Name="btn_Reset"    Grid.Row="2" Uid="506" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Reset}"    Content="_RESET" Style="{DynamicResource MaterialDesignRaisedLightButton}" FontSize="25" MinHeight="60" />
+                <Button Name="btn_DropJob"  Grid.Row="3" Uid="507" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_DropJob}"  Content="_DROP JOB" Style="{DynamicResource MaterialDesignRaisedButton}" FontSize="25" Background="#FF3C4961" MinHeight="60" />
             </Grid>
         </Grid>
     </Grid>

@@ -83,9 +83,14 @@ namespace Source_MFC.ViewModels
             Evt_BarMouseDown = new Command(On_WinMoveByMouseDown, CanExecute4Btn);
 
             _Dev = new UsCtrl_DevCont[Enum.GetNames(typeof(eDEV)).Length];
-            _Dev[(int)eDEV.MPlus] = new UsCtrl_DevCont(eDEV.MPlus);
+            _Dev[(int)eDEV.MPlus] = new UsCtrl_DevCont(eDEV.MPlus);            
             _Dev[(int)eDEV.Vehicle] = new UsCtrl_DevCont(eDEV.Vehicle);
             _Dev[(int)eDEV.IO] = new UsCtrl_DevCont(eDEV.IO);
+            foreach (eDEV item in Enum.GetValues(typeof(eDEV)))
+            {
+                _DicDevsConn.Add(item, _Dev[(int)item]._VM);
+            }
+            
 
             _mainWin.pnl_Dev_0.Children.Clear();                        
             _mainWin.pnl_Dev_0.Children.Add(_Dev[(int)eDEV.MPlus]);
