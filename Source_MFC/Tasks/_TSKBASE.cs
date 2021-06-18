@@ -48,5 +48,41 @@ namespace Source_MFC.Sequence.SubTasks
                     break;
             }
         }
+
+        public void SetErr(eERROR err)
+        {
+            switch (arg.nErr)
+            {
+                case eERROR.None:
+                    arg.SetErr(err);
+                    break;                
+                default: break;
+            }
+        }
+
+        public void Init()
+        {
+            arg.Init();
+        }
+
+        public void WorkTrg()
+        {
+            arg.WorkTrg();
+        }
+
+        public void Resume()
+        {
+            arg.Resume();
+        }
+
+        public void StopTrg()
+        {
+            arg.StopTrg();
+        }
+
+        public void ResetTime()
+        {
+            arg.ResetTactTime();
+        }
     }
 }

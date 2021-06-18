@@ -23,7 +23,7 @@ namespace Source_MFC.ViewModels
         public ICommand Evt_DataExchange4Goal { get; set; }
         public IEnumerable<eGOALTYPE> eType { get; set; }
         public IEnumerable<eLINE> eLine { get; set; }
-        public IEnumerable<eMFC_MCTYPE> eMCType { get; set; }
+        public IEnumerable<ePIOTYPE> eMCType { get; set; }
         GOALINFO _Goals;
         public VM_UsCtrl_Sys_Goal(MainCtrl ctrl)
         {
@@ -39,7 +39,7 @@ namespace Source_MFC.ViewModels
             Evt_DataExchange4Goal = new Command(On_DataExchange4Goal);
 
             eLine = Enum.GetValues(typeof(eLINE)).Cast<eLINE>();
-            eMCType = Enum.GetValues(typeof(eMFC_MCTYPE)).Cast<eMFC_MCTYPE>();
+            eMCType = Enum.GetValues(typeof(ePIOTYPE)).Cast<ePIOTYPE>();
         }
 
         ~VM_UsCtrl_Sys_Goal()
@@ -226,7 +226,7 @@ namespace Source_MFC.ViewModels
                 b_Goaltype = new eGOALTYPE();
                 b_LineSel = new eLINE();
                 b_GoalInfo = b_HostName = b_Label = string.Empty;
-                b_eMCType = eMFC_MCTYPE.NONE;
+                b_eMCType = ePIOTYPE.NOUSE;
             }
         }
 
@@ -336,7 +336,7 @@ namespace Source_MFC.ViewModels
 
         private void On_cmbMCTypeSelectedChanged(object obj)
         {
-            var type = (eMFC_MCTYPE)obj;
+            var type = (ePIOTYPE)obj;
             if (currItem.mcType != type)
             {
                 _ctrl.DoingDataExchage(eVIWER.Goal, eDATAEXCHANGE.View2Model, eUID4VM.GOAL_MCType, $"{currItem.type};{currItem.name};{type};");
@@ -369,7 +369,7 @@ namespace Source_MFC.ViewModels
             set { currItem.line = value; OnPropertyChanged("b_LineSel"); }
         }
 
-        public eMFC_MCTYPE b_eMCType
+        public ePIOTYPE b_eMCType
         {
             get { return currItem.mcType; }
             set { currItem.mcType = value; OnPropertyChanged("b_MCType"); }

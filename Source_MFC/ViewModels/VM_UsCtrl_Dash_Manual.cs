@@ -46,7 +46,7 @@ namespace Source_MFC.ViewModels
                         case eUID4VM.DASH_MNL_BTN_MAKEORDER:
                             switch (_ctrl._status.Order.state)
                             {
-                                case CommandState.None: return true;
+                                case eJOBST.None: return true;
                                 default: return false;
                             }
                         case eUID4VM.DASH_MNL_RDO_GoalType_0:                     

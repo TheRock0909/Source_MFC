@@ -450,7 +450,7 @@ namespace Source_MFC.Global
         public eLINE line { get; set; }
         public string hostName { get; set; }
         public string label { get; set; }
-        public eMFC_MCTYPE mcType { get; set; }
+        public ePIOTYPE mcType { get; set; }
         public nPOS_XYR pos { get; set; }
         public nPOS_XYR escape { get; set; }
         public GOALITEM()
@@ -459,7 +459,7 @@ namespace Source_MFC.Global
             name = string.Empty;
             line = eLINE.None;
             hostName = label = string.Empty;
-            mcType = eMFC_MCTYPE.NONE;
+            mcType = ePIOTYPE.NOUSE;
             pos = new nPOS_XYR();
             escape = new nPOS_XYR();
         }
@@ -600,6 +600,7 @@ namespace Source_MFC.Global
         public int nFeedTimeOut_Work { get; set; } // 피딩시작 후 작업완료 타임아웃
         public int nFeedTimeOut_End { get; set; } // 작업종료 후 PIO 종료 (스메마신호 Off 확인)
         public int nSenDelay { get; set; } // 센서 확인 시 딜레이
+        public int nCommTimeout { get; set; } // 통신 타임아웃(LD, Mplus)
         public PIO()
         {
             nInterfaceTimeout = 0;
@@ -608,6 +609,7 @@ namespace Source_MFC.Global
             nFeedTimeOut_Work = 0;
             nFeedTimeOut_End = 0;
             nSenDelay = 0;
+            nCommTimeout = 0;
         }
     }
 

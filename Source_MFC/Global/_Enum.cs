@@ -60,16 +60,19 @@ namespace Source_MFC.Global
         , EMG
     }
 
-    public enum RobotMode
+    public enum eROBOTMODE
     {
-         None
-       , Auto
-       , Manual
-       , Maint
-       , Error
-       ,
+         AUTO
+       , IDLE
+       , MANUAL
+       , PM
+       , ERROR
     }
-
+    public enum eERRST
+    {
+         Clear
+       , Occur
+    }
 
     public enum eRUNMODE : int
     {
@@ -159,17 +162,7 @@ namespace Source_MFC.Global
         , VECCMD
             
         , MAX_SUB_SEQ
-    }
-
-    public enum ePIOTYPE
-    {
-          None
-        , Normal
-        , DisableClamp
-    }
-
-    
-
+    }    
 
     public enum eINPUT
     {
@@ -241,7 +234,10 @@ namespace Source_MFC.Global
     public enum eERROR
     {
           None
-        , EMG        
+        , Clear
+        , EMG
+        , VEC_UNAVAILAABLE
+        , VEC_COMMTIMEOUT
     }
 
 
@@ -285,8 +281,7 @@ namespace Source_MFC.Global
         , LOADING
         , UNLOADING
         , STANDBY
-        , CAHRGE
-        , CANCEL        
+        , CAHRGE        
     }
 
     public enum eWORKTYPE : int
@@ -345,8 +340,9 @@ namespace Source_MFC.Global
         , GOAL_PosX                 , GOAL_PosY                 , GOAL_PosR
         , GOAL_EscapeX              , GOAL_EscapeY              , GOAL_EscapeR
 
-        , PIO_0 = 300               , PIO_1                     , PIO_2, PIO_3      
-        , PIO_4
+        , PIO_0 = 300               , PIO_1                     , PIO_2
+        , PIO_3                     , PIO_4                     
+        , SENDELAY                  , COMM_TIMEOUT
 
         , FAC_EQPType = 400         , FAC_EQPName               , FAC_Customer
         , FAC_SeqMode               , FAC_Language              , FAC_MPlusIP
@@ -370,6 +366,27 @@ namespace Source_MFC.Global
         , ETC_INPUTBOX  = 100
     }
 
+    public enum eCMD4MPLUS
+    {
+          NONE
+        , SRC               // MPlus 2 AMR
+        , DST               // MPlus 2 AMR
+        , REMOTE            // MPlus 2 AMR
+        , DISTANCEBTW       // MPlus 2 AMR
+        , STANDBY           // MPlus 2 AMR
+        , CHARGE            // MPlus 2 AMR
+        , MANUAL            // MPlus 2 AMR            
+
+        , STATUS            // AMR 2 MPlus
+        , JOB               // AMR 2 MPlus            
+        , ERROR             // AMR 2 MPlus            
+        , MANUAL_MAG_INST   // AMR 2 MPlus
+        , MANUAL_MAG_UNINST // AMR 2 MPlus
+        , GOAL_LD
+        , GOAL_UL
+        , STOCKER            
+    }
+
     public enum eDATAEXCHANGE
     {
           Load
@@ -389,7 +406,7 @@ namespace Source_MFC.Global
         , _double
     }
 
-    public enum CommandState
+    public enum eJOBST
     {
         None,
         Assign,
@@ -402,7 +419,7 @@ namespace Source_MFC.Global
         UserStopped,
     }
 
-    public enum RobotState
+    public enum eROBOTST
     {
          None
        , NotAssigned
@@ -413,15 +430,6 @@ namespace Source_MFC.Global
        , Charging
        , Standby
        ,
-    }
-
-    public enum eMPCMD : int
-    {
-          NONE
-        , ERROR
-        , JOBSTATE
-        , QUERYPATH
-        , QUERYWORKTYPE
     }
 
     public enum eLANGUAGE
@@ -447,12 +455,12 @@ namespace Source_MFC.Global
         , _25
         , Sharing
     }
-    public enum eMFC_MCTYPE
+    public enum ePIOTYPE
     {
-          NONE
+          NOUSE
         , KCH
         , JR
-        , CLEANER
+        , CLR
     }
 
     public enum eSRCHGOALBY
@@ -460,6 +468,31 @@ namespace Source_MFC.Global
           Map
         , Host
         , Label
+    }
+
+    public enum eREMOTE_MODE
+    {
+          NONE
+        , RESUME
+        , PAUSE
+        , ABORT
+        , CANCEL
+    }
+
+    public enum eREMOTE_MODE_REPLY
+    {
+          NONE
+        , RESUMED
+        , PAUSED
+        , ABORTED
+        , CANCELED
+    }
+
+    public enum eMNL_INST
+    {
+          NONE
+        , INSTALL
+        , UNINSTALL
     }
 
     public class DEF_CONST

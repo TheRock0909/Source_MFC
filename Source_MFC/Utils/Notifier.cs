@@ -221,7 +221,7 @@ namespace Source_MFC.Utils
 
         string _JobState = string.Empty;
         string _AIVState = string.Empty;
-        public void JobState(CommandState state, RobotState rbtSt)
+        public void JobState(eJOBST state, eROBOTST rbtSt)
         {
             _JobState = Ctrls.Remove_(state.ToString());
             _AIVState = Ctrls.Remove_(rbtSt.ToString());

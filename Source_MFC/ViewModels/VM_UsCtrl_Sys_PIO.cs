@@ -45,6 +45,8 @@ namespace Source_MFC.ViewModels
                         b_FeedTimeOut_Start = $"{e.data.nFeedTimeOut_Start}";
                         b_FeedTimeOut_Work = $"{e.data.nFeedTimeOut_Work}";
                         b_FeedTimeOut_End = $"{e.data.nFeedTimeOut_End}";
+                        b_SensorDelay = $"{e.data.nSenDelay}";
+                        b_CommTimeout = $"{e.data.nCommTimeout}";
                         break;
                     }
                 case eDATAEXCHANGE.View2Model:
@@ -54,8 +56,9 @@ namespace Source_MFC.ViewModels
                         var strCurr = string.Empty;
                         switch (uid)
                         {
-                            case eUID4VM.PIO_0:  case eUID4VM.PIO_1:  case eUID4VM.PIO_2: 
-                            case eUID4VM.PIO_3:  case eUID4VM.PIO_4:                                
+                            case eUID4VM.PIO_0:     case eUID4VM.PIO_1:  case eUID4VM.PIO_2: 
+                            case eUID4VM.PIO_3:     case eUID4VM.PIO_4:
+                            case eUID4VM.SENDELAY:  case eUID4VM.COMM_TIMEOUT:
                                 datatype = eDATATYPE._int;
                                 switch (uid)
                                 {
@@ -64,6 +67,8 @@ namespace Source_MFC.ViewModels
                                     case eUID4VM.PIO_2: strCurr = $"{b_FeedTimeOut_Start}"; break;
                                     case eUID4VM.PIO_3: strCurr = $"{b_FeedTimeOut_Work}"; break;
                                     case eUID4VM.PIO_4: strCurr = $"{b_FeedTimeOut_End}"; break;
+                                    case eUID4VM.SENDELAY: strCurr = $"{b_SensorDelay}"; break;
+                                    case eUID4VM.COMM_TIMEOUT: strCurr = $"{b_CommTimeout}"; break;
                                     default: break;
                                 }
                                 break;
@@ -113,9 +118,8 @@ namespace Source_MFC.ViewModels
         public string b_InterfaceTimeout
         {
             get { return InterfaceTimeout; }
-            set {
-                InterfaceTimeout = value;
-                OnPropertyChanged("b_InterfaceTimeout");
+            set {                
+                this.MutateVerbose(ref InterfaceTimeout, value, RaisePropertyChanged());
             }
         }
 
@@ -124,8 +128,7 @@ namespace Source_MFC.ViewModels
         {
             get { return DockSenChkTime; }
             set {
-                DockSenChkTime = value;
-                OnPropertyChanged("b_DockSenChkTime");
+                this.MutateVerbose(ref DockSenChkTime, value, RaisePropertyChanged());
             }
         }
 
@@ -134,8 +137,7 @@ namespace Source_MFC.ViewModels
         {
             get { return FeedTimeOut_Start; }
             set {
-                FeedTimeOut_Start = value;
-                OnPropertyChanged("b_FeedTimeOut_Start");
+                this.MutateVerbose(ref FeedTimeOut_Start, value, RaisePropertyChanged());
             }
         }
 
@@ -144,8 +146,7 @@ namespace Source_MFC.ViewModels
         {
             get { return FeedTimeOut_Work; }
             set {
-                FeedTimeOut_Work = value;
-                OnPropertyChanged("b_FeedTimeOut_Work");
+                this.MutateVerbose(ref FeedTimeOut_Work, value, RaisePropertyChanged());
             }
         }
 
@@ -154,8 +155,25 @@ namespace Source_MFC.ViewModels
         {
             get { return FeedTimeOut_End; }
             set {
-                FeedTimeOut_End = value;
-                OnPropertyChanged("b_FeedTimeOut_End");
+                this.MutateVerbose(ref FeedTimeOut_End, value, RaisePropertyChanged());
+            }
+        }
+
+        string SensorDelay;
+        public string b_SensorDelay
+        {
+            get { return SensorDelay; }
+            set {
+                this.MutateVerbose(ref SensorDelay, value, RaisePropertyChanged());
+            }
+        }
+
+        string commTimeout;
+        public string b_CommTimeout
+        {
+            get { return commTimeout; }
+            set {
+                this.MutateVerbose(ref commTimeout, value, RaisePropertyChanged());
             }
         }
 

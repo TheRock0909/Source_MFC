@@ -126,17 +126,15 @@ LBL_ERR:
             _IOChk.Stop();
             _IOChk.Dispose();
             if (true == _Connected)
-            {
-                //Close Device            
-                _Err = _FnIo.FNIO_DevCloseDevice(_hDev);
+            {                
+                _Err = _FnIo.FNIO_DevCloseDevice(_hDev); //Close Device            
                 if (_Err != CrevisFnIO.FNIO_ERROR_SUCCESS)
                 {
                     Debug.Write(false, $"Failed to close the device.");
                     _FnIo.FNIO_LibFreeSystem(_hSys);
                     return;
-                }
-                //Free System         
-                _Err = _FnIo.FNIO_LibFreeSystem(_hSys);
+                }                       
+                _Err = _FnIo.FNIO_LibFreeSystem(_hSys); //Free System
             }
         }
 
@@ -170,10 +168,8 @@ LBL_ERR:
                     {
                         case 0:                            
                             arg.nStuff++;
-                            _Err = _FnIo.FNIO_DevReadOutputImage(_hDev, 0, ref pOutputImage[0], OutputImageSize);                                
-                            _Out.UINT8_0 = pOutputImage[0];
-                            _Out.UINT8_1 = pOutputImage[1];
-                            _Out.UINT8_2 = pOutputImage[2];                                
+                            _Err = _FnIo.FNIO_DevReadOutputImage(_hDev, 0, ref pOutputImage[0], OutputImageSize);
+                            SetByteAll(eELEMENT_TYPE.Output, pOutputImage);                            
                             break;                            
                         default: arg.nTrg = 0; arg.nStep = 10; break;
                     }                    
@@ -214,9 +210,7 @@ LBL_ERR:
                                 switch (_Err)
                                 {
                                     case CrevisFnIO.FNIO_ERROR_SUCCESS:
-                                        _GetOut.UINT8_0 = pGetOutputImg[0];
-                                        _GetOut.UINT8_1 = pGetOutputImg[1];
-                                        _GetOut.UINT8_2 = pGetOutputImg[2];
+                                        SetByteAll(eELEMENT_TYPE.GetOutput, pGetOutputImg);
                                         arg.nStep = 25; arg.tDly.Reset();
                                         break;
                                     default: SetDevDispose(); break;
@@ -241,9 +235,7 @@ LBL_ERR:
                                 switch (_Err)
                                 {
                                     case CrevisFnIO.FNIO_ERROR_SUCCESS:
-                                        _In.UINT8_0 = pGetOutputImg[0];
-                                        _In.UINT8_1 = pGetOutputImg[1];
-                                        _In.UINT8_2 = pGetOutputImg[2];
+                                        SetByteAll(eELEMENT_TYPE.Input, pInputImage);
                                         arg.nStep = 40; arg.tDly.Reset(); 
                                         break;
                                     default: SetDevDispose(); break;
@@ -259,8 +251,71 @@ LBL_ERR:
             }
         }
 
-        //2021.05.14 IO 재연결을 위한 Device close
-        private void SetDevDispose()
+        enum eELEMENT_TYPE { Input, Output, GetOutput }
+        private void SetByteAll(eELEMENT_TYPE nType, byte[] arry )
+        {
+            int idx = 0;
+            switch (nType)
+            {
+                case eELEMENT_TYPE.Input:
+                    foreach (byte item in arry)
+                    {
+                        switch (idx)
+                        {
+                            case 0: _In.UINT8_0 = item; break;
+                            case 1: _In.UINT8_1 = item; break;
+                            case 2: _In.UINT8_2 = item; break;
+                            case 3: _In.UINT8_3 = item; break;
+                            case 4: _In.UINT8_4 = item; break;
+                            case 5: _In.UINT8_5 = item; break;
+                            case 6: _In.UINT8_6 = item; break;
+                            case 7: _In.UINT8_7 = item; break;
+                            default: break;
+                        }
+                        idx++;
+                    }
+                    break;
+                case eELEMENT_TYPE.Output:
+                    foreach (byte item in arry)
+                    {
+                        switch (idx)
+                        {
+                            case 0: _Out.UINT8_0 = item; break;
+                            case 1: _Out.UINT8_1 = item; break;
+                            case 2: _Out.UINT8_2 = item; break;
+                            case 3: _Out.UINT8_3 = item; break;
+                            case 4: _Out.UINT8_4 = item; break;
+                            case 5: _Out.UINT8_5 = item; break;
+                            case 6: _Out.UINT8_6 = item; break;
+                            case 7: _Out.UINT8_7 = item; break;
+                            default: break;
+                        }
+                        idx++;
+                    }
+                    break;
+                case eELEMENT_TYPE.GetOutput:
+                    foreach (byte item in arry)
+                    {
+                        switch (idx)
+                        {
+                            case 0: _GetOut.UINT8_0 = item; break;
+                            case 1: _GetOut.UINT8_1 = item; break;
+                            case 2: _GetOut.UINT8_2 = item; break;
+                            case 3: _GetOut.UINT8_3 = item; break;
+                            case 4: _GetOut.UINT8_4 = item; break;
+                            case 5: _GetOut.UINT8_5 = item; break;
+                            case 6: _GetOut.UINT8_6 = item; break;
+                            case 7: _GetOut.UINT8_7 = item; break;
+                            default: break;
+                        }
+                        idx++;
+                    }
+                    break;
+                default: break;
+            }
+        }
+        
+        private void SetDevDispose() //2021.05.14 IO 재연결을 위한 Device close
         {
             _Connected = false;
             _Err = _FnIo.FNIO_DevCloseDevice(_hDev);

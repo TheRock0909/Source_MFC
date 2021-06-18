@@ -60,9 +60,6 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EzVehicle">
-      <HintPath>DLL\EzVehicle.dll</HintPath>
-    </Reference>
     <Reference Include="KeyPad">
       <HintPath>DLL\KeyPad.dll</HintPath>
     </Reference>
@@ -109,6 +106,14 @@
     <Compile Include="HW\IO\Crevis.cs" />
     <Compile Include="HW\IO\CrevisFnIO.cs" />
     <Compile Include="HW\IO\_IO.cs" />
+    <Compile Include="HW\M+\AsyncUdpSock.cs" />
+    <Compile Include="HW\M+\MPlus.cs" />
+    <Compile Include="HW\MobileRobot\IVehicle.cs" />
+    <Compile Include="HW\MobileRobot\LD\AsyncClintSock.cs" />
+    <Compile Include="HW\MobileRobot\LD\LD.cs" />
+    <Compile Include="HW\MobileRobot\LD\LD_SOCK.cs" />
+    <Compile Include="HW\MobileRobot\LD\LD_STATE.cs" />
+    <Compile Include="HW\MobileRobot\LD\LD_STATUS.cs" />
     <Compile Include="MainCtrl.cs" />
     <Compile Include="Sequence\Seq_Drop.cs" />
     <Compile Include="Sequence\Seq_Main.cs" />
@@ -296,10 +301,7 @@
   <ItemGroup>
     <Resource Include="program.ico" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="HW\M+\" />
-    <Folder Include="HW\MobileRobot\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\MaterialDesignThemes.4.0.0\build\MaterialDesignThemes.targets" Condition="Exists('..\packages\MaterialDesignThemes.4.0.0\build\MaterialDesignThemes.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

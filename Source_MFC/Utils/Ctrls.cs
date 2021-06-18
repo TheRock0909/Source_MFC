@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -31,6 +32,13 @@ namespace Source_MFC.Global
         public static string Remove_(string enumstr)
         {
             return enumstr.Replace("_", " ").ToUpper();
+        }
+
+        public static string Remove_line(string str)
+        {
+            var regex = new Regex(@"\r\n?|\n|\t", RegexOptions.Compiled);
+            string rtn = regex.Replace(str, String.Empty);
+            return rtn;
         }
     }
 

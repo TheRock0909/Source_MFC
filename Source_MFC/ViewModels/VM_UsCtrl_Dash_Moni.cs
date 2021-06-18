@@ -1,6 +1,6 @@
-﻿using EzVehicle.Ctrl;
-using MaterialDesignThemes.Wpf;
+﻿using MaterialDesignThemes.Wpf;
 using Source_MFC.Global;
+using Source_MFC.HW.MobileRobot.LD;
 using Source_MFC.Utils;
 using System;
 using System.Collections.Generic;
@@ -253,8 +253,8 @@ namespace Source_MFC.ViewModels
                         case eUID4VM.DASH_MONI_DROPJOB:
                             switch (_Status.vecState.JobState)
                             {
-                                case RobotState.None:                                
-                                case RobotState.NotAssigned: return false;
+                                case eROBOTST.None:                                
+                                case eROBOTST.NotAssigned: return false;
                                 default: return true;
                             }                            
                     }
@@ -294,39 +294,39 @@ namespace Source_MFC.ViewModels
             b_VecSOC = $"{soc} %";
         }
 
-        private void UpdateVecStatus(EzVehicle.Ctrl.eSTATE st)
+        private void UpdateVecStatus(eVECSTATE st)
         {
             switch (st)
             {
-                case EzVehicle.Ctrl.eSTATE.IDLE_PROCESSING:
-                case EzVehicle.Ctrl.eSTATE.NONE:
+                case eVECSTATE.IDLE_PROCESSING:
+                case eVECSTATE.NONE:
                     b_ForeGroundVecState = new SolidColorBrush(Colors.DimGray);
                     IconVecState = PackIconKind.NotificationsNone;
                     break;
 
-                case EzVehicle.Ctrl.eSTATE.STOPPING:
-                case EzVehicle.Ctrl.eSTATE.GOING_TO:
-                case EzVehicle.Ctrl.eSTATE.GOING_TO_POINT:
-                case EzVehicle.Ctrl.eSTATE.GOING_TO_DOCK_AT:
-                case EzVehicle.Ctrl.eSTATE.DRIVING:
-                case EzVehicle.Ctrl.eSTATE.DRIVING_INTO_DOCK:
-                case EzVehicle.Ctrl.eSTATE.TELEOP_DRIVING:
-                case EzVehicle.Ctrl.eSTATE.MOVING:
-                case EzVehicle.Ctrl.eSTATE.DOING_TASK_DELTAHEADING:
-                case EzVehicle.Ctrl.eSTATE.DOING_TASK_MOVE:
-                case EzVehicle.Ctrl.eSTATE.DOING_TASK_PAUSE:
-                case EzVehicle.Ctrl.eSTATE.DONE_DRIVING:
-                case EzVehicle.Ctrl.eSTATE.DOCKING:                    
-                case EzVehicle.Ctrl.eSTATE.UNDOCKING:
+                case eVECSTATE.STOPPING:
+                case eVECSTATE.GOING_TO:
+                case eVECSTATE.GOING_TO_POINT:
+                case eVECSTATE.GOING_TO_DOCK_AT:
+                case eVECSTATE.DRIVING:
+                case eVECSTATE.DRIVING_INTO_DOCK:
+                case eVECSTATE.TELEOP_DRIVING:
+                case eVECSTATE.MOVING:
+                case eVECSTATE.DOING_TASK_DELTAHEADING:
+                case eVECSTATE.DOING_TASK_MOVE:
+                case eVECSTATE.DOING_TASK_PAUSE:
+                case eVECSTATE.DONE_DRIVING:
+                case eVECSTATE.DOCKING:                    
+                case eVECSTATE.UNDOCKING:
                     b_ForeGroundVecState = new SolidColorBrush(Colors.Green);
                     IconVecState = PackIconKind.ShoeRunning;
                     break;
 
-                case EzVehicle.Ctrl.eSTATE.FAILED_GOING_TO:
-                case EzVehicle.Ctrl.eSTATE.ESTOP_PRESSED:
-                case EzVehicle.Ctrl.eSTATE.ESTOP_RELIEVED:
-                case EzVehicle.Ctrl.eSTATE.CANNOT_FIND_PATH:
-                case EzVehicle.Ctrl.eSTATE.NO_ENTER:
+                case eVECSTATE.FAILED_GOING_TO:
+                case eVECSTATE.ESTOP_PRESSED:
+                case eVECSTATE.ESTOP_RELIEVED:
+                case eVECSTATE.CANNOT_FIND_PATH:
+                case eVECSTATE.NO_ENTER:
                     b_ForeGroundVecState = new SolidColorBrush(Colors.Tomato);
                     IconVecState = PackIconKind.Error;
                     break;
