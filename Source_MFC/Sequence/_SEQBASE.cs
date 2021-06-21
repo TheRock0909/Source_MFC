@@ -46,5 +46,22 @@ namespace Source_MFC.Sequence.MainTasks
             return _ctrl.Seq_Get(id);            
         }
 
+        public void SetErr(eERROR err)
+        {
+            switch (arg.nErr)
+            {
+                case eERROR.None:
+                    arg.SetErr(err);
+                    break;
+                default: break;
+            }
+        }
+
+        public void WorkTrg()
+        {
+            arg.WorkTrg();
+        }
+
+
     }
 }

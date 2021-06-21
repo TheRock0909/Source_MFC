@@ -84,7 +84,21 @@
     <Compile Include="Global\Sys.cs" />
     <Compile Include="Global\_Data.cs" />
     <Compile Include="MainCtrl.cs" />
+<<<<<<< HEAD
+    <Compile Include="Sequence\Seq_Drop.cs" />
+    <Compile Include="Sequence\Seq_EscapeEQP.cs" />
+    <Compile Include="Sequence\Seq_Main.cs" />
+    <Compile Include="Sequence\Seq_Move2Dst.cs" />
+    <Compile Include="Sequence\Seq_Pick.cs" />
+    <Compile Include="Sequence\Seq_PIO.cs" />
+    <Compile Include="Sequence\_SEQBASE.cs" />
+    <Compile Include="Tasks\Tsk_VecCmd.cs" />
+    <Compile Include="Tasks\Tsk_MPlusComm.cs" />
+    <Compile Include="Tasks\Tsk_Switch.cs" />
+    <Compile Include="Tasks\_TSKBASE.cs" />
+=======
     <Compile Include="Utils\BackUpLogger.cs" />
+>>>>>>> 4629ae8f993020e2a82a7b78230291c2bda3a73a
     <Compile Include="Utils\BitVector64.cs" />
     <Compile Include="Utils\Commands.cs" />
     <Compile Include="Utils\Ctrls.cs" />

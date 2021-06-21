@@ -30,6 +30,16 @@ namespace Source_MFC.HW.MobileRobot.LD
         , DISTANCEBETWEEN
         , RANGEDEVICEGETCURRENT
 
+        // Use for PCL Mode
+        , TRANSGO
+        , AFTERSTART
+        , KCUNLOADING
+        , KCLOADING
+        , JRUNLOADING
+        , JRLOADING
+        , SJUNLOADING
+        , SJLOADING
+
     }
     public enum eVECSTATE : int
     {
@@ -224,9 +234,20 @@ namespace Source_MFC.HW.MobileRobot.LD
                 if (eVECST_CMD_TYPE.NONE != rtn) break;
             }
 
-            if (rtn == eVECST_CMD_TYPE.NONE)
+            switch (rtn)
             {
-                rtn = eVECST_CMD_TYPE.NONE;
+                case eVECST_CMD_TYPE.NONE:                    
+                    string[] arclmsgs = temp.Replace(" ", "_").ToUpper().Split('_');
+                    if (4 <= arclmsgs.Count())
+                    {
+
+                    }
+                    else
+                    {
+                        //rtn = 
+                    }                    
+                    break;
+                default: break;
             }
             return rtn;
         }

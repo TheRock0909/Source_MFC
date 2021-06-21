@@ -143,12 +143,18 @@ namespace Source_MFC.Global
 
     public enum eSEQLIST : int
     {
+<<<<<<< HEAD
+          Main
+        , EscapeEQP
+        , Move2Dst        
+=======
           EQP_Init
         , Conv_Init
         , Move2ParkingPos
         , Main
         , Move2Dst
         , AlignStage
+>>>>>>> 4629ae8f993020e2a82a7b78230291c2bda3a73a
         , PIO
         , LowerPick
         , UpperPick
