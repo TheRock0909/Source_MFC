@@ -9,19 +9,18 @@ using System.Threading.Tasks;
 
 namespace Source_MFC.Sequence
 {
-    public class Seq_Main : _SEQBASE
+    public class Seq_EscapeEQP : _SEQBASE
     {
-        public Seq_Main(MainCtrl main)
+        public Seq_EscapeEQP(MainCtrl main)
         {
             _ctrl = main;
-            arg = new TASKARG(eSEQLIST.Main);
+            arg = new TASKARG(eSEQLIST.EscapeEQP);
         }
 
         override public void Run()
         {
             try
             {
-                var job = _ctrl._status.Order;
                 switch (arg.nStep)
                 {
                     case DEF_CONST.SEQ_INIT:
@@ -29,29 +28,7 @@ namespace Source_MFC.Sequence
                         arg.nStatus = eSTATE.Working;
                         break;
                     case 10:
-                        switch (job.state)
-                        {
-                            case eJOBST.None: break;
-                            case eJOBST.Assign:
-                                arg.nStep = 100;
-                                break;
-                            case eJOBST.Enroute:
-                                arg.nStep = 200;
-                                break;
-                            case eJOBST.Arrived:
-                            case eJOBST.Transferring:
-                            case eJOBST.TransStart:
-                            case eJOBST.CarrierChanged:
-                                arg.nStep = 300;
-                                break;
-                            case eJOBST.TransComplete:
-                            case eJOBST.UserStopped:
-                            default: break;
-                        }
-                        break;
-                    // 처음 Job을 받았을 경우 현재 위치를 확인해서 회피구동을 해야하는지 확인한다.
-                    case 100:                        
-
+                        arg.nStep = 100;
                         break;
                     case 500:
                         arg.nStatus = eSTATE.Done;

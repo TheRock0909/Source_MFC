@@ -144,9 +144,25 @@ namespace Source_MFC.Global
         , TACTTIME_JOB
     }
 
+    public enum eBackUpType
+    {
+          Default
+        , Bak
+        , DateBak
+    }
+
+    public enum eJsonName
+    {
+          Cfg
+        , Goal
+        , Status
+        , IO
+    }
+
     public enum eSEQLIST : int
     {
           Main
+        , EscapeEQP
         , Move2Dst        
         , PIO
         , Pick

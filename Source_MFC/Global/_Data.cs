@@ -179,6 +179,7 @@ namespace Source_MFC.Global
         public STATUS status = null;
         public SYS sys = null;
 
+        public bool bMakeBak = false;
         private _Data()
         {
             status = new STATUS();
@@ -212,7 +213,25 @@ namespace Source_MFC.Global
 
                             bool rtn = false;
                             rtn = _inst.StatusLoad();
+                            if(rtn == false)
+                            {
+                                foreach (eJsonName idx in Enum.GetValues(typeof(eJsonName)))
+                                {
+                                    STATUS.LoadParam(_inst.status, eBackUpType.Bak, idx);
+                                    STATUS.SaveParam(_inst.status, eBackUpType.Default, idx);
+                                    STATUS.LoadParam(_inst.status, eBackUpType.Default, idx);
+                                }
+                            }
                             rtn = _inst.SysLoad();
+                            if(rtn == false)
+                            {
+                                foreach (eJsonName idx in Enum.GetValues(typeof(eJsonName)))
+                                {
+                                    SYS.LoadParam(_inst.sys, eBackUpType.Bak, idx);
+                                    SYS.SaveParam(_inst.sys, eBackUpType.Default, idx);
+                                    SYS.LoadParam(_inst.sys, eBackUpType.Default, idx);
+                                }
+                            }
                         }
                     }
                 }
@@ -245,6 +264,12 @@ namespace Source_MFC.Global
         {
             STATUS.Save(_inst.status);
             SYS.Save(_inst.sys);
+
+            // UI SAVE 버튼 누를 시 백업파일 경로로 같이 저장
+            foreach (eJsonName idx in Enum.GetValues(typeof(eJsonName)))
+            {
+                STATUS.SaveParam(_inst.status, eBackUpType.Bak, idx);
+            }
         }
     }
 }

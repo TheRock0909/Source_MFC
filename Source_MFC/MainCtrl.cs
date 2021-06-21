@@ -230,6 +230,8 @@ namespace Source_MFC
 
             _Seqs[(int)eSEQLIST.Main] = new Seq_Main(this);
             _lstSeqs.Add(_Seqs[(int)eSEQLIST.Main]);
+            _Seqs[(int)eSEQLIST.EscapeEQP] = new Seq_EscapeEQP(this);
+            _lstSeqs.Add(_Seqs[(int)eSEQLIST.EscapeEQP]);
             _Seqs[(int)eSEQLIST.Move2Dst] = new Seq_Move2Dst(this);
             _lstSeqs.Add(_Seqs[(int)eSEQLIST.Move2Dst]);
             _Seqs[(int)eSEQLIST.PIO] = new Seq_PIO(this);
@@ -305,7 +307,7 @@ namespace Source_MFC
                                     if (true == need2Assign)
                                     {
                                         _status.Order.Set(job);
-                                        Job_SetState(eJOBST.Enroute);
+                                        Job_SetState(eJOBST.Assign);
                                         foreach (var item in _lstSeqs)
                                         {
                                             switch (item.arg.GetID())
@@ -930,6 +932,41 @@ namespace Source_MFC
             {
                 item.getOutput = _getout[item.RealID];
             }
+
+            var order = _status.Order;
+            var vtrValid        = _sys.io.Get(eINPUT.VTA_PIO_Valid);
+            var vtrReady        = _sys.io.Get(eINPUT.VTA_PIO_Ready);
+            var vtrCompleted    = _sys.io.Get(eINPUT.VTA_PIO_Completed);
+            var vtrMCErr        = _sys.io.Get(eINPUT.VTA_PIO_MC_ERROR);
+            var vtrOutReady     = _sys.io.Get(eOUTPUT.VTA_PIO_Ready);
+            var vtrOutComplte   = _sys.io.Get(eOUTPUT.VTA_PIO_Completed);
+            switch (order.state)
+            {                
+                case eJOBST.Assign:
+                case eJOBST.Enroute:
+                case eJOBST.Arrived:
+                case eJOBST.Transferring:
+                case eJOBST.TransStart:
+                case eJOBST.CarrierChanged:
+                    vtrValid.state = PIO_IN_Valid();
+                    vtrReady.state = PIO_IN_Ready();
+                    vtrCompleted.state = PIO_IN_Completed();
+                    vtrMCErr.state = PIO_IN_ERR();
+                    vtrOutReady.getOutput = PIO_GetOut_Ready();
+                    vtrOutComplte.getOutput = PIO_GetOut_Completed();
+                    break;
+                case eJOBST.None:
+                case eJOBST.TransComplete:
+                case eJOBST.UserStopped:
+                default:
+                    vtrValid.state = false;
+                    vtrReady.state = false;
+                    vtrCompleted.state = false;
+                    vtrMCErr.state = false;
+                    vtrOutReady.getOutput = false;
+                    vtrOutComplte.getOutput = false;
+                    break;
+            }
         }
 
         public bool IO_IN(eINPUT id)
@@ -1007,6 +1044,7 @@ namespace Source_MFC
             switch (job.type)
             {
                 case eJOBTYPE.LOADING: case eJOBTYPE.UNLOADING:
+                    rtn = IO_IN(eINPUT.MFC_POS_OK);
                     break;
                 default: break;
             }
@@ -1020,7 +1058,8 @@ namespace Source_MFC
             switch (job.type)
             {                
                 case eJOBTYPE.LOADING: case eJOBTYPE.UNLOADING:
-                    break;                
+                    rtn = IO_IN(eINPUT.MFC_PIO_GO);
+                    break;
                 default: break;
             }
             return rtn;
@@ -1029,12 +1068,36 @@ namespace Source_MFC
         public bool PIO_IN_Ready()
         {
             bool rtn = false;
-            var job = _status.Order;
+            var job = _status.Order;            
             switch (job.type)
             {
-                case eJOBTYPE.LOADING: case eJOBTYPE.UNLOADING:
+                case eJOBTYPE.LOADING:
+                    switch (job.goal.mcType)
+                    {
+                        case ePIOTYPE.KCH:
+                        case ePIOTYPE.CLR:
+                            rtn = IO_IN(eINPUT.MFC_PIO_2);
+                            break;
+                        case ePIOTYPE.JR:
+                            rtn = IO_IN(eINPUT.MFC_PIO_2);
+                            break;
+                        default: break;
+                    }
                     break;
-                default: break;
+                case eJOBTYPE.UNLOADING:
+                    switch (job.goal.mcType)
+                    {
+                        case ePIOTYPE.KCH:
+                        case ePIOTYPE.CLR:
+                            rtn = IO_IN(eINPUT.MFC_PIO_6);
+                            break;
+                        case ePIOTYPE.JR:
+                            rtn = IO_IN(eINPUT.MFC_PIO_5);
+                            break;
+                        default: break;
+                    }
+                    break;
+                default:  break;
             }
             return rtn;
         }
@@ -1045,7 +1108,31 @@ namespace Source_MFC
             var job = _status.Order;
             switch (job.type)
             {
-                case eJOBTYPE.LOADING: case eJOBTYPE.UNLOADING:
+                case eJOBTYPE.LOADING:
+                    switch (job.goal.mcType)
+                    {
+                        case ePIOTYPE.KCH:
+                        case ePIOTYPE.CLR:
+                            rtn = IO_IN(eINPUT.MFC_PIO_3);
+                            break;
+                        case ePIOTYPE.JR:
+                            rtn = IO_IN(eINPUT.MFC_PIO_3);
+                            break;
+                        default: break;
+                    }
+                    break;
+                case eJOBTYPE.UNLOADING:
+                    switch (job.goal.mcType)
+                    {
+                        case ePIOTYPE.KCH:
+                        case ePIOTYPE.CLR:
+                            rtn = IO_IN(eINPUT.MFC_PIO_7);
+                            break;
+                        case ePIOTYPE.JR:
+                            rtn = IO_IN(eINPUT.MFC_PIO_6);
+                            break;
+                        default: break;
+                    }
                     break;
                 default: break;
             }
@@ -1059,6 +1146,7 @@ namespace Source_MFC
             switch (job.type)
             {
                 case eJOBTYPE.LOADING: case eJOBTYPE.UNLOADING:
+                    rtn = IO_IN(eINPUT.MFC_PIO_8);
                     break;
                 default: break;
             }
@@ -1070,10 +1158,71 @@ namespace Source_MFC
             var job = _status.Order;
             switch (job.type)
             {
-                case eJOBTYPE.LOADING: case eJOBTYPE.UNLOADING:
+                case eJOBTYPE.LOADING:
+                    switch (job.goal.mcType)
+                    {
+                        case ePIOTYPE.KCH:
+                        case ePIOTYPE.CLR:
+                            IO_OUT(eOUTPUT.MFC_PIO_1, bTrg);
+                            break;
+                        case ePIOTYPE.JR:
+                            IO_OUT(eOUTPUT.MFC_PIO_1, bTrg);
+                            break;
+                        default: break;
+                    }
+                    break;
+                case eJOBTYPE.UNLOADING:
+                    switch (job.goal.mcType)
+                    {
+                        case ePIOTYPE.KCH:
+                        case ePIOTYPE.CLR:
+                            IO_OUT(eOUTPUT.MFC_PIO_5, bTrg);
+                            break;
+                        case ePIOTYPE.JR:
+                            IO_OUT(eOUTPUT.MFC_PIO_5, bTrg);
+                            break;
+                        default: break;
+                    }
                     break;
                 default: break;
             }
+        }
+
+        public bool PIO_GetOut_Ready()
+        {
+            var rtn = false;
+            var job = _status.Order;
+            switch (job.type)
+            {
+                case eJOBTYPE.LOADING:
+                    switch (job.goal.mcType)
+                    {
+                        case ePIOTYPE.KCH:
+                        case ePIOTYPE.CLR:
+                            rtn = IO_GETOUT(eOUTPUT.MFC_PIO_1);
+                            break;
+                        case ePIOTYPE.JR:
+                            rtn = IO_GETOUT(eOUTPUT.MFC_PIO_1);
+                            break;
+                        default: break;
+                    }
+                    break;
+                case eJOBTYPE.UNLOADING:
+                    switch (job.goal.mcType)
+                    {
+                        case ePIOTYPE.KCH:
+                        case ePIOTYPE.CLR:
+                            rtn = IO_GETOUT(eOUTPUT.MFC_PIO_5);
+                            break;
+                        case ePIOTYPE.JR:
+                            rtn = IO_GETOUT(eOUTPUT.MFC_PIO_5);
+                            break;
+                        default: break;
+                    }
+                    break;
+                default: break;
+            }
+            return rtn;
         }
 
         public void PIO_Out_Completed(bool bTrg)
@@ -1081,10 +1230,71 @@ namespace Source_MFC
             var job = _status.Order;
             switch (job.type)
             {
-                case eJOBTYPE.LOADING: case eJOBTYPE.UNLOADING:
+                case eJOBTYPE.LOADING:
+                    switch (job.goal.mcType)
+                    {
+                        case ePIOTYPE.KCH:
+                        case ePIOTYPE.CLR:
+                            IO_OUT(eOUTPUT.MFC_PIO_2, bTrg);
+                            break;
+                        case ePIOTYPE.JR:
+                            IO_OUT(eOUTPUT.MFC_PIO_2, bTrg);
+                            break;
+                        default: break;
+                    }
+                    break;
+                case eJOBTYPE.UNLOADING:
+                    switch (job.goal.mcType)
+                    {
+                        case ePIOTYPE.KCH:
+                        case ePIOTYPE.CLR:
+                            IO_OUT(eOUTPUT.MFC_PIO_6, bTrg);
+                            break;
+                        case ePIOTYPE.JR:
+                            IO_OUT(eOUTPUT.MFC_PIO_6, bTrg);
+                            break;
+                        default: break;
+                    }
                     break;
                 default: break;
             }
+        }
+
+        public bool PIO_GetOut_Completed()
+        {
+            var rtn = false;
+            var job = _status.Order;
+            switch (job.type)
+            {
+                case eJOBTYPE.LOADING:
+                    switch (job.goal.mcType)
+                    {
+                        case ePIOTYPE.KCH:
+                        case ePIOTYPE.CLR:
+                            rtn = IO_GETOUT(eOUTPUT.MFC_PIO_2);
+                            break;
+                        case ePIOTYPE.JR:
+                            rtn = IO_GETOUT(eOUTPUT.MFC_PIO_2);
+                            break;
+                        default: break;
+                    }
+                    break;
+                case eJOBTYPE.UNLOADING:
+                    switch (job.goal.mcType)
+                    {
+                        case ePIOTYPE.KCH:
+                        case ePIOTYPE.CLR:
+                            rtn = IO_GETOUT(eOUTPUT.MFC_PIO_6);
+                            break;
+                        case ePIOTYPE.JR:
+                            rtn = IO_GETOUT(eOUTPUT.MFC_PIO_6);
+                            break;
+                        default: break;
+                    }
+                    break;
+                default: break;
+            }
+            return rtn;
         }
 
         public void Job_SetState(eJOBST state)
@@ -1094,26 +1304,30 @@ namespace Source_MFC
             {
                 case eJOBST.None:
                     _status.bIsManual = false;
+                    switch (_EQPStatus)
+                    {                        
+                        case eEQPSATUS.Run:
+                            _EQPStatus = eEQPSATUS.Idle;
+                            break;                        
+                        default: break;
+                    }
                     DoingDataExchage(eVIWER.Monitor, eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_JOB_Update);
                     Evt_Dash_Moni_DataExchange?.Invoke(new Noti() { msg = "TEST MVVM View update", nTemp = 5 }, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_JOB_PioStart));
                     break;
                 case eJOBST.Assign:
+                    _EQPStatus = eEQPSATUS.Run;
                     break;
-                case eJOBST.Enroute:
-                    break;
-                case eJOBST.Arrived:
-                    break;
-                case eJOBST.Transferring:
-                    break;
-                case eJOBST.TransStart:
-                    break;
+                case eJOBST.Enroute:                    
+                case eJOBST.Arrived:                    
+                case eJOBST.Transferring:                    
+                case eJOBST.TransStart:                    
                 case eJOBST.CarrierChanged:
                     break;
                 case eJOBST.TransComplete:
                 case eJOBST.UserStopped:
                     _Order.Init();                    
                     Job_SetState(eJOBST.None);
-                    break;                
+                    break;
             }
             DoingDataExchage(eVIWER.Monitor, eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_JOB_Update);
         }

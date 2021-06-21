@@ -468,6 +468,8 @@ namespace Source_MFC.Global
     public class GOALINFO
     {
         public List<GOALITEM> lst;
+        DateTime Date = DateTime.Now;
+        
         public GOALINFO()
         {
             lst = new List<GOALITEM>();
@@ -555,6 +557,7 @@ namespace Source_MFC.Global
                 string path = $"Data\\Goal.json";
                 var saveData = JsonConvert.SerializeObject(st);
                 File.WriteAllText(path, saveData);
+
             }
             catch (Exception e)
             {
@@ -576,6 +579,8 @@ namespace Source_MFC.Global
             catch (Exception e)
             {
                 Debug.Write(false, $"{e.ToString()}");
+
+
                 st = new GOALINFO();
                 foreach (eGOALTYPE item in Enum.GetValues(typeof(eGOALTYPE)))
                 {                    
@@ -588,7 +593,11 @@ namespace Source_MFC.Global
                 Save(st);
                 return false;
             }
-            return true;
+            if(st == null)
+            {
+                return false;
+            }
+            else return true;
         }
     }
 
@@ -612,6 +621,7 @@ namespace Source_MFC.Global
             nCommTimeout = 0;
         }
     }
+
 
     public class FAC
     {
@@ -680,7 +690,11 @@ namespace Source_MFC.Global
                 st = new CFG();
                 return false;
             }
-            return true;
+            if(st == null)
+            {
+                return false;
+            }
+            else return true;
         }
     }
 
@@ -732,13 +746,73 @@ namespace Source_MFC.Global
                 rtn = IOINFO.Load(out st.io, st.cfg.fac.eqpType, st.cfg.fac.language );
                 rtn = GOALINFO.Load(out st.goal);
                 rtn = LAMPINFO.Load(out st.lmp);
+
+                if(rtn == true)
+                {
+                    foreach (eJsonName idx in Enum.GetValues(typeof(eJsonName)))
+                    {
+                        SaveParam(st, eBackUpType.Bak, idx);
+                        SaveParam(st, eBackUpType.DateBak, idx);
+                    }
+                }
+                
             }
             catch (Exception e)
             {
-                Debug.Write(false, $"{e.ToString()}");                
+                Debug.Write(false, $"{e.ToString()}");
                 return false;
             }
             return true;
         }
+
+        public static void SaveParam(SYS st ,eBackUpType type, eJsonName name)
+        {
+            string pathBak = BackUpLogger.Inst.RoutejsonData(type, name);
+            switch (name)
+            {
+                case eJsonName.Cfg:
+                    var savecfg = JsonConvert.SerializeObject(st.cfg);
+                    File.WriteAllText(pathBak, savecfg);
+                    break;
+                case eJsonName.Goal:
+                    var savegoal = JsonConvert.SerializeObject(st.goal);
+                    File.WriteAllText(pathBak, savegoal);
+                    break;
+                case eJsonName.Status:
+                    break;
+                case eJsonName.IO:
+                    var saveio = JsonConvert.SerializeObject(st.io);
+                    File.WriteAllText(pathBak, saveio);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        public static void LoadParam(SYS st, eBackUpType type, eJsonName name)
+        {
+            string pathBak = BackUpLogger.Inst.RoutejsonData(type, name);
+            var loadData = File.ReadAllText(pathBak);
+            switch (name)
+            {
+                case eJsonName.Cfg:
+                    var tempcfg = JsonConvert.DeserializeObject<CFG>(loadData);
+                    st.cfg = tempcfg;
+                    break;
+                case eJsonName.Goal:
+                    var tempgoal = JsonConvert.DeserializeObject<GOALINFO>(loadData);
+                    st.goal = tempgoal;
+                    break;
+                case eJsonName.Status:
+                    break;
+                case eJsonName.IO:
+                    var tempio = JsonConvert.DeserializeObject<IOINFO>(loadData);
+                    st.io = tempio;
+                    break;
+                default:
+                    break;
+            }
+        }
     }
+
 }
