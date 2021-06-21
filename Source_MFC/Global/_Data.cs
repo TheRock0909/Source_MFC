@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Source_MFC.HW.MobileRobot.LD;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -72,6 +74,103 @@ namespace Source_MFC.Global
         }
     }
 
+    public class JCVT_VEC
+    {
+        public string typeName { get; set; }
+        public string json { get; set; }
+        public static JCVT_VEC Set<T>(T data)
+        {
+            var obj = new JCVT_VEC();
+            obj.typeName = $"{typeof(T).Name}";
+            obj.json = JsonConvert.SerializeObject(data, Formatting.Indented);
+            return obj;
+        }
+
+        public static void Get(string data, out SENDARG arg)
+        {
+            arg = JsonConvert.DeserializeObject<SENDARG>(data);
+        }
+
+        public static void Get(string data, out LD_STATUS arg)
+        {
+            arg = JsonConvert.DeserializeObject<LD_STATUS>(data);
+        }
+        public static void Get(string data, out LOG arg)
+        {
+            arg = JsonConvert.DeserializeObject<LOG>(data);
+        }
+    }
+
+    public class LOG
+    {
+        public bool bSend { get; set; }
+        public string msg { get; set; }
+        public string Get()
+        {
+            return $"{GetTime()} : {(true == bSend ? "S" : "R")} = {msg}";
+        }
+        private string GetTime(bool bNeed2MilSec = true)
+        {
+            DateTime NowTime = DateTime.Now;
+            if (bNeed2MilSec) return NowTime.ToString("HH:mm:ss.") + NowTime.Millisecond.ToString("000");
+            else return NowTime.ToString("HH_mm_ss");
+        }
+    }
+
+    public enum eVEHICLETYPE
+    {
+          LD
+        , MIR
+    }
+
+    public enum eVEC_CMD
+    {
+          None = -1
+        , Stop
+        , Say
+        , PauseCancel
+        , Go2Goal
+        , Go2Point
+        , Go2Straight
+        , Dock
+        , Undock
+        , MoveDeltaHeading
+        , MoveFront
+        , GetDistBetween
+        , GetDistFromHere
+        , LocalizeAtGoal
+    }
+
+
+    public class SENDARG
+    {
+        public string goal_1st { get; set; }
+        public string goal_2nd { get; set; }
+        public nPOS_XYR pos { get; set; }
+        public string msg { get; set; }
+        public int move { get; set; }
+        public int spd { get; set; }
+        public int acc { get; set; }
+        public int dec { get; set; }
+        public SENDARG()
+        {
+            goal_1st = goal_2nd = msg = string.Empty; pos = new nPOS_XYR();
+            move = 0; spd = 30; acc = 10; dec = 10;
+        }
+
+        public void CopyFrom(SENDARG arg)
+        {
+            goal_1st = arg.goal_1st;
+            goal_2nd = arg.goal_2nd;
+            pos = new nPOS_XYR() { x = arg.pos.x, y = arg.pos.y, r = arg.pos.r } ;
+            msg = arg.msg;
+            move = arg.move;
+            spd = arg.spd;
+            acc = arg.acc;
+            dec = arg.dec;
+        }
+    }
+
     public class _Data
     {
         private static volatile _Data _inst;
@@ -110,8 +209,7 @@ namespace Source_MFC.Global
                             {
                                 dtif.Create();
                             }
-                            Trace
-                                .Write($"path --------------------------------");
+                            Trace.Write($"path --------------------------------");
 
                             bool rtn = false;
                             rtn = _inst.StatusLoad();

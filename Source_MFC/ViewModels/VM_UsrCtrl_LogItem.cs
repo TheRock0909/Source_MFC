@@ -26,6 +26,11 @@ namespace Source_MFC.ViewModels
             _ctrl.Evt_WriteLog += On_WriteLog;            
         }
 
+        ~VM_UsrCtrl_LogItem()
+        {
+            _ctrl.Evt_WriteLog -= On_WriteLog;
+        }
+
         private void On_WriteLog(object sender, WriteLogArgs e)
         {
             if ( logItemType == e.type )

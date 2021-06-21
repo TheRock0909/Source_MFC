@@ -167,11 +167,16 @@ namespace Source_MFC.Global
     }
     public class IOINFO
     {
-        private int nMaxPortNo;
+        private int nMaxPortNo = 0 ;
         public int _MaxPort { get { return nMaxPortNo; } set { nMaxPortNo = value; } }
+        public long _CurrInputState { get; set; } = 0;
+        public long _CurrGetOutputState { get; set; } = 0;
+        private bool bDirectIO = false;
+        public bool _bDirectIO { get { return bDirectIO; } set { bDirectIO = value; } }
         public List<IOSRC> lst;
         public IOINFO()
         {
+            _bDirectIO = false;
             lst = new List<IOSRC>();
             lst.Clear();
         }
@@ -195,6 +200,19 @@ namespace Source_MFC.Global
         public IOSRC Get(eINPUT id)
         {
             var src = lst.SingleOrDefault(s => s.name4Enum == id.ToString() && s.Type == eIOTYPE.INPUT);
+            if (null != src)
+            {
+                return src;
+            }
+            else
+            {
+                return new IOSRC();
+            }
+        }
+
+        public IOSRC Get(string label)
+        {
+            var src = lst.SingleOrDefault(s => s.Label == label && s.Type == eIOTYPE.INPUT);
             if (null != src)
             {
                 return src;
@@ -232,6 +250,8 @@ namespace Source_MFC.Global
                     src.state = utemp[idx];
                 }
             }
+            this._CurrInputState = utemp.INT64;
+
             idx = 0;
             utemp = new Any64();
             utemp.INT64 = getOutputs;
@@ -244,6 +264,7 @@ namespace Source_MFC.Global
                     src.getOutput = utemp[idx];
                 }
             }
+            this._CurrGetOutputState = utemp.INT64;
         }
 
         public long WriteOutputsAll()
@@ -259,14 +280,14 @@ namespace Source_MFC.Global
             return utemp.INT64;
         }
 
-        public static bool Save(IOINFO st, eEQPTYPE type, eLANGUAGE lan = eLANGUAGE.kor)
+        public static bool Save( IOINFO st, eEQPTYPE type, eLANGUAGE lan = eLANGUAGE.kor)
         {
             try
             {
                 RemoveVirtualIO(st);
                 string path = $"Data\\IO_{type}_{lan}.json";
                 var saveData = JsonConvert.SerializeObject(st);
-                File.WriteAllText(path, saveData);
+                File.WriteAllText(path, saveData);                
             }
             catch (Exception e)
             {
@@ -282,7 +303,7 @@ namespace Source_MFC.Global
             try
             {
                 string path = $"Data\\IO_{type}_{lan}.json";
-                var loadData = File.ReadAllText(path);
+                var loadData = File.ReadAllText(path);                
                 var temp = JsonConvert.DeserializeObject<IOINFO>(loadData);               
                 st = temp;
             }
@@ -309,7 +330,7 @@ namespace Source_MFC.Global
             {
                 if (false == info.lst.Any(s => s.name4Enum == item.ToString() && s.Type == eIOTYPE.INPUT))
                 {
-                    info.lst.Add(new IOSRC() { Type = eIOTYPE.INPUT, eID = (int)item, name4Enum = $"{item}", RealID = (int)item, Label = $"{item.ToString().ToUpper().Replace("_", " ")}"});
+                    info.lst.Add(new IOSRC() { Type = eIOTYPE.INPUT, eID = (int)item, name4Enum = $"{item}", RealID = (int)item, Label = Ctrls.Remove_(item.ToString()) });
                 }
             }
 
@@ -318,7 +339,7 @@ namespace Source_MFC.Global
             {
                 if (false == info.lst.Any(s => s.name4Enum == item.ToString() && s.Type == eIOTYPE.OUTPUT))
                 {
-                    info.lst.Add(new IOSRC() { Type = eIOTYPE.OUTPUT, eID = (int)item, name4Enum = $"{item}", RealID = (int)item, Label = $"{item.ToString().ToUpper().Replace("_", " ")}" });
+                    info.lst.Add(new IOSRC() { Type = eIOTYPE.OUTPUT, eID = (int)item, name4Enum = $"{item}", RealID = (int)item, Label = Ctrls.Remove_(item.ToString()) });
                 }
             }
         }
@@ -429,7 +450,7 @@ namespace Source_MFC.Global
         public eLINE line { get; set; }
         public string hostName { get; set; }
         public string label { get; set; }
-        public eMFC_MCTYPE mcType { get; set; }
+        public ePIOTYPE mcType { get; set; }
         public nPOS_XYR pos { get; set; }
         public nPOS_XYR escape { get; set; }
         public GOALITEM()
@@ -438,7 +459,7 @@ namespace Source_MFC.Global
             name = string.Empty;
             line = eLINE.None;
             hostName = label = string.Empty;
-            mcType = eMFC_MCTYPE.NONE;
+            mcType = ePIOTYPE.NOUSE;
             pos = new nPOS_XYR();
             escape = new nPOS_XYR();
         }
@@ -587,6 +608,8 @@ namespace Source_MFC.Global
         public int nFeedTimeOut_Start { get; set; } // 피딩시작 후 입구센서에 트래이 감지 타임아웃
         public int nFeedTimeOut_Work { get; set; } // 피딩시작 후 작업완료 타임아웃
         public int nFeedTimeOut_End { get; set; } // 작업종료 후 PIO 종료 (스메마신호 Off 확인)
+        public int nSenDelay { get; set; } // 센서 확인 시 딜레이
+        public int nCommTimeout { get; set; } // 통신 타임아웃(LD, Mplus)
         public PIO()
         {
             nInterfaceTimeout = 0;
@@ -594,6 +617,8 @@ namespace Source_MFC.Global
             nFeedTimeOut_Start = 0;
             nFeedTimeOut_Work = 0;
             nFeedTimeOut_End = 0;
+            nSenDelay = 0;
+            nCommTimeout = 0;
         }
     }
 
@@ -626,6 +651,7 @@ namespace Source_MFC.Global
     {
         public PIO pio;
         public FAC fac;
+
 
         public CFG()
         {
@@ -678,7 +704,8 @@ namespace Source_MFC.Global
         public USERINFO user;
         public IOINFO io;
         public GOALINFO goal;
-        public LAMPINFO lmp;        
+        public LAMPINFO lmp; 
+        
         public SYS()
         {
             cfg = new CFG();
@@ -686,6 +713,7 @@ namespace Source_MFC.Global
             io = new IOINFO();
             goal = new GOALINFO();
             lmp = new LAMPINFO();
+
         }
 
         public static bool Save(SYS st)

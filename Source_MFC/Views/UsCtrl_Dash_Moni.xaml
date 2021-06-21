@@ -8,6 +8,7 @@
              xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity" 
              xmlns:wpf="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
              xmlns:local="clr-namespace:Source_MFC.Views"             
+             xmlns:uitls="clr-namespace:Source_MFC.Utils"             
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"                 
              xmlns:materialDesignConverters="clr-namespace:MaterialDesignThemes.Wpf.Converters;assembly=MaterialDesignThemes.Wpf"             
              mc:Ignorable="d" 
@@ -16,7 +17,6 @@
         <ResourceDictionary>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             <materialDesignConverters:BooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter" TrueValue="Collapsed" FalseValue="Visible" />
-
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.GroupBox.xaml" />
             </ResourceDictionary.MergedDictionaries>
@@ -29,8 +29,7 @@
             <ColumnDefinition Width="25*"/>
             <ColumnDefinition Width="25*"/>
         </Grid.ColumnDefinitions>
-
-        <Grid Name="grd_JobMoni" MinHeight="550" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Grid MinHeight="550" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <GroupBox Grid.Row="0" Grid.Column="0" Header="JOB MONITOR" Style="{DynamicResource MaterialDesignGroupBox}" Margin="5" materialDesign:ColorZoneAssist.Mode="PrimaryLight">
                 <GroupBox.HeaderTemplate>
                     <DataTemplate>
@@ -41,7 +40,7 @@
                     </DataTemplate>
                 </GroupBox.HeaderTemplate>
 
-                <Grid >
+                <Grid DataContext="{Binding b_jobMoni}" >
                     <Grid.RowDefinitions>
                         <RowDefinition Height="20*"/>
                         <RowDefinition Height="20*"/>
@@ -90,7 +89,7 @@
                     </StackPanel>
 
                     <StackPanel Name="pnl_dockSt" Grid.Row="6" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left" >
-                        <CheckBox IsChecked="{Binding b_AlignSen}" Content="S" Style="{StaticResource MaterialDesignActionDarkCheckBox}" Width="20" Height="20" FontSize="12"/>
+                        <CheckBox IsChecked="{Binding b_AlignSen, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Content="S" Style="{StaticResource MaterialDesignActionDarkCheckBox}" Width="20" Height="20" FontSize="12"/>
                         <TextBlock Text=" DOCKING ST : " FontSize="20" Foreground="Black"/>
                         <TextBlock Name="txt_VecPauseSt" Text="{Binding b_PauseState}" FontSize="20" Foreground="Black"/>
                         <TextBlock Text="  " FontSize="20" Foreground="Black"/>
@@ -106,89 +105,72 @@
                                 VerticalAlignment="Stretch"
                                 materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
                                 materialDesign:ButtonProgressAssist.IndicatorBackground="Black"
-                                materialDesign:ButtonProgressAssist.Value="{Binding DismissButtonProgress}"
+                                materialDesign:ButtonProgressAssist.Value="{Binding Path=DismissButtonProgress}"
                                 Visibility="{Binding ShowDismissButton, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <StackPanel Orientation="Horizontal">
                                 <materialDesign:PackIcon VerticalAlignment="Center" Kind="ProgressClock" />
-                                <TextBlock> PIO TIME</TextBlock>
+                                <TextBlock Text="{Binding Path=DemoRestartCountdownText}" />
                             </StackPanel>
                         </Button>
                     </Grid>
                 </Grid>
             </GroupBox>
         </Grid>
+        
         <Grid Name="grd_DevMoni" MinHeight="550" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Grid.RowDefinitions>
                 <RowDefinition Height="60*"/>
                 <RowDefinition Height="40*"/>
             </Grid.RowDefinitions>
 
-
-            <Grid Grid.Row="0">
-                <GroupBox Header="INPUT SIGNALS" Style="{DynamicResource MaterialDesignCardGroupBox}" 
-                      Margin="5" FontSize="12">
+            <Grid Grid.Row="0" >
+                 <GroupBox Header="INPUT SIGNALS" Style="{DynamicResource MaterialDesignCardGroupBox}" 
+                      Margin="5 5" FontSize="12" HorizontalAlignment="Left" Width="230" Height="322" VerticalAlignment="Bottom">
                     <GroupBox.HeaderTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="Input" Height="20" Width="20" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Height="10">
+                                <materialDesign:PackIcon Kind="Input" Height="15" Width="15" VerticalAlignment="Center" />
                                 <TextBlock Margin="5,0,0,0" VerticalAlignment="Center" Text="{Binding}"/>
                             </StackPanel>
                         </DataTemplate>
                     </GroupBox.HeaderTemplate>
 
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="101*"/>
-                            <ColumnDefinition Width="111*"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Orientation="Vertical" Grid.ColumnSpan="2" >
-                            <DataGrid x:Name="grd_Input" 
-                                  AutoGenerateColumns="false" 
-                                  IsReadOnly="true" MinHeight="210"
-                                  ScrollViewer.CanContentScroll="True" 
-                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                  FontSize="10"
-                                  ItemsSource="{Binding b_InputSrc.View}">
-                                <DataGrid.Columns>
-                                    <DataGridCheckBoxColumn Header="STATE" Binding="{Binding state}" />
-                                    <DataGridTextColumn Header="NAME" Binding="{Binding Label}" />
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </StackPanel>
-                    </Grid>
-                </GroupBox>
+                    <DataGrid ItemsSource="{Binding b_lstInput}" FontSize="12" IsReadOnly="true" MinHeight="330">
+                        <DataGrid.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding STATE}"/>
+                                    <TextBlock Text="{Binding LABEL}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGrid.ItemTemplate>
+                    </DataGrid>
+                </GroupBox> 
             </Grid>
 
             <Grid Grid.Row="1">
                 <GroupBox Header="OUTPUT SIGNALS" Style="{DynamicResource MaterialDesignCardGroupBox}" 
-                      Margin="5" FontSize="12"
+                      Margin="5" FontSize="12" MinHeight="250"                      
                       materialDesign:ColorZoneAssist.Mode="Dark">
                     <GroupBox.HeaderTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="Output" Height="20" Width="20" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Height="10">
+                                <materialDesign:PackIcon Kind="Output" Height="15" Width="15" VerticalAlignment="Center" />
                                 <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Text="{Binding}"/>
                             </StackPanel>
                         </DataTemplate>
                     </GroupBox.HeaderTemplate>
 
-                    <Grid>
-                        <StackPanel Orientation="Vertical">
-                            <DataGrid x:Name="grd_Output" 
-                                  AutoGenerateColumns="False" 
-                                  IsReadOnly="true" MinHeight="155"
-                                  ScrollViewer.CanContentScroll="True" 
-                                  ScrollViewer.VerticalScrollBarVisibility="Auto"   
-                                  FontSize="10"
-                                  ItemsSource="{Binding b_OutputSrc.View}" 
-                                  SelectionMode="Single">
-                                <DataGrid.Columns>
-                                    <DataGridCheckBoxColumn Header="STATE" IsReadOnly="False" Binding="{Binding getOutput}" />
-                                    <DataGridTextColumn Header="NAME" Binding="{Binding Label}"  />
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </StackPanel>
-                    </Grid>
+                    <DataGrid ItemsSource="{Binding b_lstOutput}" FontSize="12" IsReadOnly="true">
+                        <DataGrid.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding STATE}"/>
+                                    <TextBlock Text="{Binding LABEL}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGrid.ItemTemplate>
+                    </DataGrid>
                 </GroupBox>
             </Grid>
         </Grid>
@@ -273,10 +255,10 @@
                     <RowDefinition Height="25*"/>
                 </Grid.RowDefinitions>
 
-                <Button Name="btn_Start"    Grid.Row="0" Uid="505" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Start}"    Content="_START" Style="{DynamicResource MaterialDesignRaisedDarkButton}" FontSize="25" MinHeight="60" />
-                <Button Name="btn_Stop"     Grid.Row="1" Uid="506" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Stop}"     Content="_STOP" Style="{DynamicResource MaterialDesignRaisedButton}" FontSize="25" MinHeight="60" Margin="0,0,0,3" VerticalAlignment="Bottom" />
-                <Button Name="btn_Reset"    Grid.Row="2" Uid="507" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Reset}"    Content="_RESET" Style="{DynamicResource MaterialDesignRaisedLightButton}" FontSize="25" MinHeight="60" />
-                <Button Name="btn_DropJob"  Grid.Row="3" Uid="508" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_DropJob}"  Content="_DROP JOB" Style="{DynamicResource MaterialDesignRaisedButton}" FontSize="25" Background="#FF3C4961" MinHeight="60" />
+                <Button Name="btn_Start"    Grid.Row="0" Uid="504" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Start}"    Content="_START" Style="{DynamicResource MaterialDesignRaisedDarkButton}" FontSize="25" MinHeight="60" />
+                <Button Name="btn_Stop"     Grid.Row="1" Uid="505" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Stop}"     Content="_STOP" Style="{DynamicResource MaterialDesignRaisedButton}" FontSize="25" MinHeight="60" Margin="0,0,0,3" VerticalAlignment="Bottom" />
+                <Button Name="btn_Reset"    Grid.Row="2" Uid="506" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Reset}"    Content="_RESET" Style="{DynamicResource MaterialDesignRaisedLightButton}" FontSize="25" MinHeight="60" />
+                <Button Name="btn_DropJob"  Grid.Row="3" Uid="507" Command="{Binding Evt_CmdBtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_DropJob}"  Content="_DROP JOB" Style="{DynamicResource MaterialDesignRaisedButton}" FontSize="25" Background="#FF3C4961" MinHeight="60" />
             </Grid>
         </Grid>
     </Grid>

@@ -21,7 +21,7 @@ namespace Source_MFC.Views
     /// UsCtrl_Sys_IO.xaml에 대한 상호 작용 논리
     /// </summary>
     public partial class UsCtrl_Sys_IO : UserControl
-    {
+    {         
         public UsCtrl_Sys_IO(MainCtrl ctrl)
         {
             InitializeComponent();

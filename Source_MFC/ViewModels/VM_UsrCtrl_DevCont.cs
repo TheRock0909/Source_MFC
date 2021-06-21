@@ -7,77 +7,80 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Source_MFC.ViewModels
 {
     public class VM_UsrCtrl_DevCont : Notifier
     {
+        DispatcherTimer _tmrUpdate;
+        PackIconKind icon = PackIconKind.CastOff;
+        SolidColorBrush msgforegroud;
+        SolidColorBrush devNameforegroud;
         public VM_UsrCtrl_DevCont(eDEV dev)
         {
             _Initialize(dev);
         }
 
+        ~VM_UsrCtrl_DevCont()
+        {
+            _tmrUpdate.Tick -= Tmr_Tick;
+            _tmrUpdate.Stop();
+        }
+
         private void _Initialize(eDEV dev)
         {
-            _DevType = dev;
-            b_DevName = _DevType.ToString();
+            DevType = dev;
+            _tmrUpdate = new DispatcherTimer();
+            _tmrUpdate.Interval = TimeSpan.FromMilliseconds(500);    //시간간격 설정
+            _tmrUpdate.Tick += new EventHandler(Tmr_Tick);           //이벤트 추가     
+            _tmrUpdate.Start();
             SetConnection(false);
+        }
+
+        private void Tmr_Tick(object sender, EventArgs e)
+        {
+            if (false == _Data.Inst.status.bLoaded) return;
+            b_DevName = DevType.ToString();
+            b_IconCont = icon;
+            b_IconForeGround = msgforegroud;
+            b_devNameforegroud = devNameforegroud;
         }
 
         public void SetConnection(bool cont)
         {
-            b_IconCont = (true == cont) ? PackIconKind.CastConnected : PackIconKind.CastOff;
-            b_IconForeGround = (true == cont) ? new SolidColorBrush(Colors.WhiteSmoke) : new SolidColorBrush(Colors.SlateGray);
-            b_devNameforegroud = (true == cont) ? new SolidColorBrush(Colors.WhiteSmoke) : new SolidColorBrush(Colors.SlateGray);
+            icon = (true == cont) ? PackIconKind.CastConnected : PackIconKind.CastOff;
+            msgforegroud = (true == cont) ? new SolidColorBrush(Colors.WhiteSmoke) : new SolidColorBrush(Colors.SlateGray);
+            devNameforegroud = (true == cont) ? new SolidColorBrush(Colors.WhiteSmoke) : new SolidColorBrush(Colors.SlateGray);
         }
 
-        eDEV _DevType;
-        string device = string.Empty;
+        eDEV DevType;
+        string _Device = string.Empty;
         public string b_DevName
         {
-            get {
-                return device;
-            }
-            set {
-                device = value;
-                OnPropertyChanged();
-            }
+            get { return _Device; }
+            set { this.MutateVerbose(ref _Device, value, RaisePropertyChanged()); }
         }
 
-        PackIconKind icon = PackIconKind.CastOff;
+        PackIconKind _Icon = PackIconKind.CastOff;
         public PackIconKind b_IconCont
         {
-            get {
-                return icon;
-            }
-            set {
-                icon = value;
-                OnPropertyChanged();
-            }
+            get { return _Icon; }
+            set { this.MutateVerbose(ref _Icon, value, RaisePropertyChanged()); }
         }
 
-        SolidColorBrush msgforegroud;
+        SolidColorBrush _msgforegroud;
         public SolidColorBrush b_IconForeGround
         {
-            get {
-                return msgforegroud;
-            }
-            set {
-                msgforegroud = value;
-                OnPropertyChanged();
-            }
+            get { return _msgforegroud; }
+            set { this.MutateVerbose(ref _msgforegroud, value, RaisePropertyChanged()); }
         }
 
-        SolidColorBrush devNameforegroud;
+        SolidColorBrush _DevNameforegroud;
         public SolidColorBrush b_devNameforegroud
         {
-            get {
-                return devNameforegroud;
-            }
-            set {
-                devNameforegroud = value;
-                OnPropertyChanged();
-            }
+            get { return _DevNameforegroud; }
+            set { this.MutateVerbose(ref _DevNameforegroud, value, RaisePropertyChanged()); }
         }
     }
 }

@@ -1,4 +1,13 @@
-﻿using Source_MFC.Global;
+﻿using EzVehicle;
+using Source_MFC.Global;
+using Source_MFC.HW;
+using Source_MFC.HW.IO;
+using Source_MFC.HW.M_;
+using Source_MFC.HW.MobileRobot.LD;
+using Source_MFC.Sequence;
+using Source_MFC.Sequence.MainTasks;
+using Source_MFC.Sequence.SubTasks;
+using Source_MFC.Tasks;
 using Source_MFC.Utils;
 using System;
 using System.Collections.Concurrent;
@@ -19,6 +28,11 @@ namespace Source_MFC
         private SYS _sys;
         public STATUS _status;
         public STATUS status => _status;
+        public JOB _Order;
+
+        private _IO io;
+        private IVehicle vec;
+        public MPlus mplus;
         private Logger _log = Logger.Inst;
         public event EventHandler<WriteLogArgs> Evt_WriteLog;
         public event EventHandler<(eDEV dev, bool bConnection)> Evt_UpdateConnection;        
@@ -38,25 +52,37 @@ namespace Source_MFC
         public Thread thd_BackProc;
         private ConcurrentQueue<WriteLogArgs> m_quLogMsg = new ConcurrentQueue<WriteLogArgs>();        
         public string _EQPName => $"{_Data.Inst.sys.cfg.fac.eqpType}-{_Data.Inst.sys.cfg.fac.eqpName}";
+
+        MsgBox msgBox = MsgBox.Inst;
+        private _SEQBASE[] _Seqs;
+        private List<_SEQBASE> _lstSeqs = new List<_SEQBASE>();
+        private _TSKBASE[] _Tsks;
+        private List<_TSKBASE> _lstTsks= new List<_TSKBASE>();
+
         public MainCtrl(MainWindow main)
         {
             frmMain = main;
             Logger.Inst.MakeSrcHdl($"{_EQPName}");
             _sys = _Data.Inst.sys;
-            _status = _Data.Inst.status;                       
+            _status = _Data.Inst.status;
+            _Order = _status.Order;
             _log.Evt_WriteLog += On_WriteLogMsg;
-            thd_BackProc = new Thread(msgBackProcess)
+            thd_BackProc = new Thread(Trd_Background)
             {
                 IsBackground = true
-            };            
+            };
+            _sys.io._bDirectIO = true;
+            _status.bSimul = true;
         }
 
         public void _Finalize()
         {
+            Sw_Final();
+            Hw_Final();
             StopBackProc();
         }
         
-        public void DisignLoadComp()
+        public void View_Init()
         {            
             _EQPStatus = !_status.bSimul ? eEQPSATUS.Init : eEQPSATUS.Stop;
             UpdateUserData(new USER());            
@@ -66,10 +92,171 @@ namespace Source_MFC
             DoingDataExchage(eVIWER.PIO, eDATAEXCHANGE.Model2View);
             DoingDataExchage(eVIWER.FAC, eDATAEXCHANGE.Model2View);
 
-            DoingDataExchage(eVIWER.Monitor, eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_ALL);
-            DoingDataExchage(eVIWER.Manual, eDATAEXCHANGE.Model2View, eUID4VM.DASH_MNL_ALL);            
+            DoingDataExchage(eVIWER.Manual, eDATAEXCHANGE.Model2View, eUID4VM.DASH_MNL_ALL);
+            // 중요 모니터를 맨마지막에 업데이트해줘야 함!!!
+            DoingDataExchage(eVIWER.Monitor, eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_ALL); 
             thd_BackProc.Start();
             _log.Write(CmdLogType.prdt, $"Application을 시작합니다. [{_EQPName}:{_status.swVer}]");
+        }
+
+        public bool Hw_Init()
+        {
+            var rtn = true;
+            _log.Write(CmdLogType.prdt, $"H/W 초기화를 시작합니다. [{_EQPName}:{_status.swVer}]");
+            try
+            {
+                _status.devsCont.Init();                
+                foreach (eDEV dev in Enum.GetValues(typeof(eDEV)))
+                {
+                    Evt_UpdateConnection?.Invoke(this, (dev, false));
+                }                
+                io = new Crevis(this);
+                var crv = io as Crevis;
+                crv.Evt_Connected += On_Connection;
+                crv.Evt_Status += On_IO_UpdateStatus;
+
+                vec = new LD(_sys.cfg.fac.VecIP);
+                vec.Evt_Connection += On_VecConnection;
+                vec.Evt_UpdateData += On_VecUpdateData;
+
+                mplus = new MPlus();
+                mplus.Evt_Connection += On_MplusConnection;
+                mplus.Evt_RecvData += On_MplusRecvData;
+
+                if ( false == _status.bSimul )
+                {
+                    rtn = crv.Open();
+                    rtn = vec.Open();
+                    mplus.Open(_sys.cfg.fac.mplusIP, _sys.cfg.fac.mplusPort);
+                }                
+            }
+            catch (Exception e)
+            {
+                rtn = false;
+                _log.Write(CmdLogType.prdt, $"H/W 초기화에 실패하였습니다.[{_EQPName}:{_status.swVer}]-{e.ToString()}");                
+            }            
+
+            if ( true == rtn )
+            {
+                _log.Write(CmdLogType.prdt, $"H/W 초기화를 완료하였습니다. [{_EQPName}:{_status.swVer}]");
+            }            
+            return rtn;
+        }
+
+        public bool Hw_Final()
+        {
+            var rtn = true;
+            _log.Write(CmdLogType.prdt, $"H/W 종료를 시작합니다. [{_EQPName}:{_status.swVer}]");
+            try
+            {
+                var crv = io as Crevis;
+                if (null != crv)
+                {
+                    crv.Evt_Connected -= On_Connection;
+                    crv.Evt_Status -= On_IO_UpdateStatus;
+                    crv.Close();
+                }
+
+                if (null != vec)
+                {
+                    vec.Evt_Connection -= On_VecConnection;
+                    vec.Evt_UpdateData -= On_VecUpdateData;
+                    vec.Close();
+                    vec = null;
+                }
+
+                if (null != mplus)
+                {
+                    mplus.Evt_Connection -= On_MplusConnection;
+                    mplus.Close();
+                    mplus = null;
+                }
+            }
+            catch (Exception e)
+            {
+                rtn = false;
+                _log.Write(CmdLogType.prdt, $"H/W 종료를 실패하였습니다.[{_EQPName}:{_status.swVer}]-{e.ToString()}");
+            }
+
+            if (true == rtn)
+            {
+                _log.Write(CmdLogType.prdt, $"H/W 종료를 완료하였습니다. [{_EQPName}:{_status.swVer}]");
+            }
+            return rtn;
+        }
+
+        public bool Sw_Init()
+        {
+            var rtn = true;
+            _log.Write(CmdLogType.prdt, $"S/W 초기화를 시작합니다. [{_EQPName}:{_status.swVer}]");
+            try
+            {
+                Seqs_Init();
+                Tsk_Init();
+            }
+            catch (Exception e)
+            {
+                rtn = false;
+                _log.Write(CmdLogType.prdt, $"S/W 종료를 실패하였습니다.[{_EQPName}:{_status.swVer}]-{e.ToString()}");
+            }
+
+            if (true == rtn)
+            {
+                _log.Write(CmdLogType.prdt, $"S/W 초기화를 완료하였습니다. [{_EQPName}:{_status.swVer}]");
+            }
+            return rtn;
+        }
+
+        public bool Sw_Final()
+        {
+            var rtn = true;
+            _lstSeqs.Clear();
+            _lstSeqs = null;            
+            _lstTsks.Clear();
+            _lstTsks = null;
+            return rtn;
+        }
+
+        private void Seqs_Init()
+        {
+            _log.Write(CmdLogType.prdt, $"Sequence 의 Tasks 초기화를 시작합니다. [{_EQPName}:{_status.swVer}]");
+            _lstSeqs.Clear();
+            _Seqs = new _SEQBASE[(int)eSEQLIST.MAX_SEQ];
+            foreach (eSEQLIST seq in Enum.GetValues(typeof(eSEQLIST)))
+            {
+                if (eSEQLIST.MAX_SEQ == seq) continue;
+                _Seqs[(int)seq] = new _SEQBASE();
+            }
+
+            _Seqs[(int)eSEQLIST.Main] = new Seq_Main(this);
+            _lstSeqs.Add(_Seqs[(int)eSEQLIST.Main]);
+            _Seqs[(int)eSEQLIST.Move2Dst] = new Seq_Move2Dst(this);
+            _lstSeqs.Add(_Seqs[(int)eSEQLIST.Move2Dst]);
+            _Seqs[(int)eSEQLIST.PIO] = new Seq_PIO(this);
+            _lstSeqs.Add(_Seqs[(int)eSEQLIST.PIO]);
+            _Seqs[(int)eSEQLIST.Pick] = new Seq_Pick(this);
+            _lstSeqs.Add(_Seqs[(int)eSEQLIST.Pick]);
+            _Seqs[(int)eSEQLIST.Drop] = new Seq_Drop(this);
+            _lstSeqs.Add(_Seqs[(int)eSEQLIST.Drop]);
+        }
+
+        private void Tsk_Init()
+        {
+            _log.Write(CmdLogType.prdt, $"Sequence 의 SubTasks 초기화를 시작합니다. [{_EQPName}:{_status.swVer}]");
+            _lstTsks.Clear();
+            _Tsks = new _TSKBASE[(int)eTASKLIST.MAX_SUB_SEQ];
+            foreach (eTASKLIST seq in Enum.GetValues(typeof(eTASKLIST)))
+            {
+                if (eTASKLIST.MAX_SUB_SEQ == seq) continue;
+                _Tsks[(int)seq] = new _TSKBASE();
+            }
+
+            _Tsks[(int)eTASKLIST.SWITCH] = new Tsk_Switch(this);
+            _lstTsks.Add(_Tsks[(int)eTASKLIST.SWITCH]);
+            _Tsks[(int)eTASKLIST.MPLUSCOMM] = new Tsk_MPlusComm(this);
+            _lstTsks.Add(_Tsks[(int)eTASKLIST.MPLUSCOMM]);
+            _Tsks[(int)eTASKLIST.VECCMD] = new Tsk_VecCmd(this);
+            _lstTsks.Add(_Tsks[(int)eTASKLIST.VECCMD]);
         }
 
         public eEQPSATUS _EQPStatus
@@ -81,16 +268,225 @@ namespace Source_MFC
                     _log.Write(CmdLogType.prdt, $"설비 상태를 {_status.eqpState.ToString()}에서 {value.ToString()}로 변경합니다.");
                 }
                 _status.eqpState = value;
-                Evt_MainWin_DataExchange?.Invoke(_status.eqpState, (eDATAEXCHANGE.Model2View, eUID4VM.MAINWIN_EqpState));
-                Evt_Dash_Moni_DataExchange?.Invoke(_status.eqpState, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_EqpState));
+                DoingDataExchage(eVIWER.Monitor, eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_EqpState);                
             }
             get { return _status.eqpState; }
+        }
+
+        private void On_MplusConnection(object sender, bool Connection)
+        {
+            Evt_UpdateConnection?.Invoke(this, (eDEV.MPlus, Connection));
+        }
+
+        private void On_MplusRecvData(object sender, (string msg, bool bManual)e)
+        {            
+            Logger.Inst.Write(CmdLogType.Gem, $"R : {e.msg}");
+            var rcvdata = new QUE4MP();
+            var cmd = rcvdata.GetCmd(e.msg);
+            switch (_sys.cfg.fac.seqMode)
+            {
+                case eSCENARIOMODE.PC:
+                    {
+                        var tskMplus = Tsk_Get(eTASKLIST.MPLUSCOMM) as Tsk_MPlusComm;
+                        switch (cmd)
+                        {
+                            case eCMD4MPLUS.SRC: case eCMD4MPLUS.DST: case eCMD4MPLUS.STANDBY: case eCMD4MPLUS.CHARGE:
+                                {
+                                    var need2Assign = false;
+                                    var job = new JOB();
+                                    rcvdata.SetJob(e.msg, _sys.goal, ref job);
+                                    switch (_EQPStatus)
+                                    {
+                                        case eEQPSATUS.Stop: if (true == e.bManual) { need2Assign = true; } break;
+                                        case eEQPSATUS.Idle: need2Assign = true; break;
+                                        default: break;
+                                    }
+
+                                    if (true == need2Assign)
+                                    {
+                                        _status.Order.Set(job);
+                                        Job_SetState(eJOBST.Enroute);
+                                        foreach (var item in _lstSeqs)
+                                        {
+                                            switch (item.arg.GetID())
+                                            {
+                                                case eSEQLIST.Move2Dst: case eSEQLIST.PIO:
+                                                case eSEQLIST.Pick: case eSEQLIST.Drop:
+                                                    item.arg.Init();
+                                                    break;
+                                                default: break;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Logger.Inst.Write(CmdLogType.prdt, $"MFC를 가동상태 변경해 주십시오. [골이름:{rcvdata.order.Job.goal.label}, 상태:{_EQPStatus}, 가동모드:{_status.bDebug.ToString()}]");
+                                    }
+                                    break;
+                                }
+                            case eCMD4MPLUS.REMOTE:
+                                {
+                                    var remote = MP_REMOTE.Parse(e.msg);
+                                    var rtn = Mplus_RemoteCmd(remote.mode);
+                                    if (true == rtn)
+                                    {
+                                        remote.SetReply();
+                                        var mplus = tskMplus as Tsk_MPlusComm;
+                                        mplus.SetRemoteReply(remote);
+                                    }
+                                    break;
+                                }
+                            case eCMD4MPLUS.DISTANCEBTW:
+                                {
+                                    var disbtw = MP_DISTBTW.Parse(e.msg);
+                                    tskMplus.SetDistBtw(disbtw);                                    
+                                    break;
+                                }
+                            case eCMD4MPLUS.JOB: case eCMD4MPLUS.ERROR:
+                            case eCMD4MPLUS.MANUAL_MAG_INST: case eCMD4MPLUS.MANUAL_MAG_UNINST:
+                                switch (tskMplus.arg.nStatus)
+                                {                                    
+                                    case eSTATE.Checking: tskMplus.arg.nStatus = eSTATE.Checked; break;                                    
+                                    default: break;
+                                }
+                                break;
+                            case eCMD4MPLUS.GOAL_LD: case eCMD4MPLUS.GOAL_UL:
+                                {
+                                    switch (tskMplus.arg.nStatus)
+                                    {
+                                        case eSTATE.Checking:
+                                            bool need2Update = false;
+                                            var lstGoals = MP_GOAL.Parse(e.msg);
+                                            foreach (GOALITEM item in lstGoals.lstGoals)
+                                            {
+                                                var goal = _sys.goal.Get(item.type, item.name, eSRCHGOALBY.Map);
+                                                if ( null != goal )
+                                                {
+                                                    need2Update = true;
+                                                    var addGoal = new GOALITEM() { name = item.name, type = item.type, label = item.name, hostName = item.name, line = eLINE._23 };
+                                                    _sys.goal.Add(addGoal);
+                                                }
+                                            }                                            
+                                            if ( true == need2Update )
+                                            {
+                                                _Data.Inst.Save();
+                                            }
+                                            tskMplus.arg.nStatus = eSTATE.Checked;
+                                            break;
+                                        default: break;
+                                    }
+                                    break;
+                                }
+                            case eCMD4MPLUS.MANUAL:
+                            case eCMD4MPLUS.STATUS: break;
+                            default: break;
+                        }
+                        break;
+                    }
+                default: Logger.Inst.Write(CmdLogType.prdt, $"제어모드가 PLC모드입니다. PC모드로 변경해 주세요. [골이름:{rcvdata.order.Job.goal.label}, 상태:{_EQPStatus}, 가동모드:{_status.bDebug.ToString()}]"); break;
+            }
+        }
+
+        private void On_VecConnection(object sender, bool Connection)
+        {
+            Evt_UpdateConnection?.Invoke(this, (eDEV.Vehicle, Connection));
+        }
+
+        private void On_VecUpdateData(object sender, JCVT_VEC data)
+        {
+            switch (data.typeName)
+            {
+                case "LD_STATUS":
+                    {
+                        JCVT_VEC.Get(data.json, out LD_STATUS rtn);
+                        _status.vecState.state = rtn.state.st;
+                        switch (_status.vecState.state)
+                        {
+                            case eVECSTATE.AFTER_GOAL:
+                            case eVECSTATE.ARRIVED_AT:
+                            case eVECSTATE.GOING_TO:
+                            case eVECSTATE.FAILED_GOING_TO:
+                                _status.vecState.dst = rtn.state.dst;
+                                break;
+                            default: break;
+                        }
+                        _status.vecState.localize = (int)rtn.local;
+                        _status.vecState.temp = (int)rtn.temp;
+                        _status.vecState.pos = new nPOS_XYR() { x = rtn.pos.x, y = rtn.pos.y, r = rtn.pos.r };
+                        _status.vecState.msg = rtn.state.msg;
+                        _status.vecState.subMsg = rtn.state.subMsg;
+
+                        var tskVec = Tsk_Get(eTASKLIST.VECCMD) as Tsk_VecCmd;
+                        switch (tskVec.currCmd)
+                        {
+                            case eVEC_CMD.GetDistBetween:
+                            case eVEC_CMD.GetDistFromHere:
+                                switch (tskVec.arg.nStatus)
+                                {                                    
+                                    case eSTATE.Checking:
+                                        var chk = rtn.dist.cmd.ToEnum<eSTATE>();
+                                        tskVec.arg.nStatus = eSTATE.Done == chk ? eSTATE.Checked : eSTATE.Failed;
+                                        _status.dResult = rtn.dist.result;
+                                        break;                                  
+                                    default: break;
+                                }
+                                break;
+                        }
+
+                        var tskMpComm = Tsk_Get(eTASKLIST.MPLUSCOMM) as Tsk_MPlusComm;                        
+                        switch (tskMpComm._CurrCmd)
+                        {                            
+                            case eCMD4MPLUS.DISTANCEBTW:
+                                switch (tskMpComm.arg.nStatus)
+                                {
+                                    case eSTATE.Checking:
+                                        tskMpComm.arg.nStatus = tskVec.arg.nStatus;
+                                        break;
+                                    default: break;
+                                }
+                                break;                            
+                            default: break;
+                        }
+                        break;
+                    }
+                default: break;
+            }
         }
 
         public void UpdateUserData(USER userData)
         {
             Evt_MainWin_DataExchange?.Invoke(userData, (eDATAEXCHANGE.Model2View, eUID4VM.MAINWIN_User));            
         }
+
+        private void On_Connection(object sender, (eDEV dev, bool connection) e)
+        {            
+            switch (e.dev)
+            {
+                case eDEV.IO:                    
+                    if (_status.devsCont.io != (e.connection ? eCOMSTATUS.CONNECTED : eCOMSTATUS.DISCONNECTED))
+                    {
+                        Logger.Inst.Write(CmdLogType.prdt, $"{e.dev.ToString()} 연결을 {(true == e.connection ? "성공" : "실패")}하였습니다.");
+                    }
+                    _status.devsCont.io = e.connection ? eCOMSTATUS.CONNECTED : eCOMSTATUS.DISCONNECTED;                    
+                    break;
+                case eDEV.MPlus:
+                    if (_status.devsCont.mPlus != (e.connection ? eCOMSTATUS.CONNECTED : eCOMSTATUS.DISCONNECTED))
+                    {
+                        Logger.Inst.Write(CmdLogType.prdt, $"{e.dev.ToString()} 연결을 {(true == e.connection ? "성공" : "실패")}하였습니다.");
+                    }
+                    _status.devsCont.mPlus = e.connection ? eCOMSTATUS.CONNECTED : eCOMSTATUS.DISCONNECTED;
+                    break;
+                case eDEV.Vehicle:
+                    if (_status.devsCont.Vec != (e.connection ? eCOMSTATUS.CONNECTED : eCOMSTATUS.DISCONNECTED))
+                    {
+                        Logger.Inst.Write(CmdLogType.prdt, $"{e.dev.ToString()} 연결을 {(true == e.connection ? "성공" : "실패")}하였습니다.");
+                    }
+                    _status.devsCont.Vec = e.connection ? eCOMSTATUS.CONNECTED : eCOMSTATUS.DISCONNECTED;
+                    break;
+                default: break;
+            }
+            Evt_UpdateConnection?.Invoke(this, (e.dev, e.connection));
+        }        
 
 
         private void On_WriteLogMsg(object sender, WriteLogArgs e)
@@ -101,11 +497,12 @@ namespace Source_MFC
         private bool isThRun = true;
         private TIMEARG backProcScan = new TIMEARG();
         public long _backProcScan => backProcScan.nCurr;
-        private void msgBackProcess()
+        private void Trd_Background()
         {
             backProcScan.Reset();
             while (isThRun)
-            {                
+            {
+                Proc4Tsks();
                 Proc4Viwer();
                 Proc4Log();                
                 Thread.Sleep(1);
@@ -158,23 +555,25 @@ namespace Source_MFC
         TIMEARG tmr4fast = new TIMEARG() { nDelay = 50 };
         TIMEARG tmr4middle = new TIMEARG() { nDelay = 500 };
         TIMEARG tmr4slow = new TIMEARG() { nDelay = 1 * 1000 };
+        TASKARG testArg = new TASKARG(eSEQLIST.MAX_SEQ);
         private void Proc4Viwer()
         {
             if (true == tmr4fast.IsOver())
             {
                 switch (CurrView)
                 {
-                    case eVIWER.IO: DoingDataExchage(eVIWER.IO, eDATAEXCHANGE.Model2View, eUID4VM.IO_RefreshList); break;                    
+                    case eVIWER.IO: break;
+                    case eVIWER.Monitor: break;
                     default: break;
-                }                
+                }
             }
 
             if (true == tmr4middle.IsOver())
-            {
+            {                
                 switch (CurrView)
                 {
                     case eVIWER.IO: break;
-                    case eVIWER.Monitor: DoingDataExchage(eVIWER.Monitor, eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_IO); break;
+                    case eVIWER.Monitor: break;
                     default: break;
                 }
             }
@@ -184,8 +583,18 @@ namespace Source_MFC
                 switch (CurrView)
                 {
                     case eVIWER.IO: break;
+                    case eVIWER.Monitor: break;
                     default: break;
                 }
+            }
+        }
+
+        private void Proc4Tsks()
+        {
+            if (false == _status.bLoaded || null == _lstTsks) return;
+            foreach (var item in _lstTsks)
+            {
+                item.Run();
             }
         }
 
@@ -200,13 +609,96 @@ namespace Source_MFC
                         switch (viwer)
                         {
                             case eVIWER.Monitor:
-                                Evt_MainWin_DataExchange?.Invoke(_status, (eDATAEXCHANGE.Model2View, eUID4VM.MAINWIN_ALL));
-                                Evt_Dash_Moni_DataExchange?.Invoke(_status, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_ALL));                                
+                                switch (id)
+                                {
+                                    case eUID4VM.DASH_MONI_ALL:
+                                        Evt_MainWin_DataExchange?.Invoke(_status, (eDATAEXCHANGE.Model2View, eUID4VM.MAINWIN_ALL));
+                                        Evt_Dash_Moni_DataExchange?.Invoke(_status, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_ALL));
+                                        break;
+                                    case eUID4VM.DASH_MONI_EqpState:
+                                        Evt_MainWin_DataExchange?.Invoke(_status.eqpState, (eDATAEXCHANGE.Model2View, eUID4VM.MAINWIN_EqpState));
+                                        Evt_Dash_Moni_DataExchange?.Invoke(_status.eqpState, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_EqpState));
+                                        break;                                    
+                                    case eUID4VM.DASH_MONI_VECSTATE:
+                                        Evt_Dash_Moni_DataExchange?.Invoke(_status, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_VECSTATE));
+                                        break;
+                                    case eUID4VM.DASH_MONI_IO:
+                                        Evt_Dash_Moni_DataExchange?.Invoke(_sys.io, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_IO));
+                                        break;
+                                    case eUID4VM.DASH_MONI_JOB_Assigned:
+                                        Evt_Dash_Moni_DataExchange?.Invoke(_Order, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_IO));
+                                        break;
+                                    case eUID4VM.DASH_MONI_JOB_Update:
+                                        Evt_Dash_Moni_DataExchange?.Invoke(_Order, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_JOB_Update));
+                                        break;
+                                    case eUID4VM.DASH_MONI_JOB_Reset:
+                                        Evt_Dash_Moni_DataExchange?.Invoke(_Order, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_JOB_Reset));
+                                        break;
+                                    case eUID4VM.DASH_MONI_JOB_PioStart:
+                                        {
+                                            var noti = new Noti();
+                                            switch (_Order.state)
+                                            {                                                
+                                                case eJOBST.Arrived:
+                                                    noti.nTemp = _sys.cfg.pio.nDockSenChkTime;
+                                                    noti.msg = $"Position OK Sensor Checking...";
+                                                    break;
+                                                case eJOBST.Transferring:
+                                                    noti.nTemp = _sys.cfg.pio.nFeedTimeOut_Start;
+                                                    noti.msg = $"Waiting for Valid Signal of PIO." ;
+                                                    break;
+                                                case eJOBST.TransStart:
+                                                    noti.nTemp = _sys.cfg.pio.nFeedTimeOut_Work ;
+                                                    noti.msg = $"Waiting for transfer done of the tray." ;
+                                                    break;
+                                                case eJOBST.CarrierChanged:
+                                                case eJOBST.TransComplete:
+                                                    noti.nTemp = _sys.cfg.pio.nFeedTimeOut_Work;
+                                                    noti.msg = $"Waiting for done of PIO.";
+                                                    break;                                                
+                                                default: break;
+                                            }
+                                            if ( 0 < noti.nTemp )
+                                            {
+                                                Evt_Dash_Moni_DataExchange?.Invoke(noti, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_JOB_PioStart));
+                                            }
+                                            break;
+                                        }
+                                    case eUID4VM.DASH_MONI_START:
+                                        break;
+                                    case eUID4VM.DASH_MONI_STOP:
+                                        break;
+                                    case eUID4VM.DASH_MONI_RESET:
+                                        break;
+                                    case eUID4VM.DASH_MONI_DROPJOB:
+                                        break;
+                                    default: break;
+                                }
                                 break;
                             case eVIWER.Manual:
-                                Evt_Dash_Manual_DataExchange?.Invoke(_status, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MNL_ALL));
+                                switch (id)
+                                {
+                                    case eUID4VM.DASH_MNL_ALL:
+                                        Evt_Dash_Manual_DataExchange?.Invoke(_status, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MNL_ALL));
+                                        break;
+                                    default: break;
+                                }
                                 break;
-                            case eVIWER.IO: Evt_Sys_IO_DataExchange?.Invoke(this, (eDATAEXCHANGE.Model2View, id)); break;
+                            case eVIWER.IO:
+                                switch (id)
+                                {
+                                    case eUID4VM.IO_SetList:
+                                    case eUID4VM.IO_RefreshList:
+                                        Evt_Sys_IO_DataExchange?.Invoke(obj, (eDATAEXCHANGE.Model2View, id));
+                                        break;
+                                    case eUID4VM.IO_ResetDirectIO:
+                                        _sys.io._bDirectIO = false;
+                                        Evt_Sys_IO_DataExchange?.Invoke(_sys.io._bDirectIO, (eDATAEXCHANGE.Model2View, id));
+                                        break;
+                                    default: break;
+                                }
+                                
+                                break;
                             case eVIWER.TowerLamp: Evt_Sys_Lamp_DataExchange?.Invoke(this, (_EQPStatus, _sys.lmp)); break;
                             case eVIWER.Goal:
                                 {
@@ -228,7 +720,10 @@ namespace Source_MFC
                             case eVIWER.FAC: Evt_Sys_FAC_Item_DataExchange?.Invoke(this, (dir, _sys.cfg.fac)); break;
                             default: break;
                         }
-                        CurrView = viwer;
+                        if (id != eUID4VM.IO_ResetDirectIO)
+                        {
+                            CurrView = viwer;
+                        }
                         break;
                     }
                 case eDATAEXCHANGE.View2Model:
@@ -322,7 +817,7 @@ namespace Source_MFC
                                                             if (goal.label!= work[2]) { goal.label = work[2]; }
                                                             else { rtn = false; }
                                                             break;
-                                                        case eUID4VM.GOAL_MCType: goal.mcType = work[2].ToEnum<eMFC_MCTYPE>(); break;
+                                                        case eUID4VM.GOAL_MCType: goal.mcType = work[2].ToEnum<ePIOTYPE>(); break;
                                                         case eUID4VM.GOAL_PosX: case eUID4VM.GOAL_PosY: case eUID4VM.GOAL_PosR:
                                                         case eUID4VM.GOAL_EscapeX: case eUID4VM.GOAL_EscapeY: case eUID4VM.GOAL_EscapeR:
                                                             {
@@ -371,6 +866,8 @@ namespace Source_MFC
                                                     case eUID4VM.PIO_2: pio.nFeedTimeOut_Start = value; break;                                                       
                                                     case eUID4VM.PIO_3: pio.nFeedTimeOut_Work = value; break;                                                       
                                                     case eUID4VM.PIO_4: pio.nFeedTimeOut_End = value; break;
+                                                    case eUID4VM.SENDELAY: pio.nSenDelay = value; break;
+                                                    case eUID4VM.COMM_TIMEOUT: pio.nCommTimeout = value; break;
                                                 }
                                             }                                            
                                             break;
@@ -415,22 +912,53 @@ namespace Source_MFC
             return rtn;
         }
 
+        private void On_IO_UpdateStatus(object sender, (long nIn, long nGetout) e)
+        {
+            var _in = new Any64();
+            var _getout = new Any64();
+            _in.INT64 = e.nIn;
+            _getout.INT64 = e.nGetout;
+
+            var inputs = IO_LstGet(eVIWER.IO, eIOTYPE.INPUT);
+            foreach (IOSRC item in inputs)
+            {
+                item.state = _in[item.RealID];
+            }
+
+            var outputs = IO_LstGet(eVIWER.IO, eIOTYPE.OUTPUT);
+            foreach (IOSRC item in outputs)
+            {
+                item.getOutput = _getout[item.RealID];
+            }
+        }
+
         public bool IO_IN(eINPUT id)
         {
-            return (false == _status.bSimul) ? /*io.GetInput((int)id)*/ false : false;
-        }
+            var src = _sys.io.Get(id);
+            return src.state;
+        }        
 
         public bool IO_GETOUT(eOUTPUT id)
         {
-            return (false == _status.bSimul) ? /*io.GetOutput((int)id)*/ false : false;
+            var src = _sys.io.Get(id);
+            return src.getOutput;
         }
 
         public void IO_OUT(eOUTPUT id, bool bTrg)
+        {            
+            io.SetOutput(id, bTrg);
+        }
+
+        public IOSRC IO_SrcGet_IN(eINPUT id)
         {
-            if (false == _status.bSimul)
-            {
-                //io.SetOutput((int)id, bTrg);
-            }
+            var src = _Data.Inst.sys.io.Get(id);
+            return src;
+        }
+
+        public IOSRC IO_SrcGet_OUT(eOUTPUT id)
+        {
+            var src = _Data.Inst.sys.io.Get(id);
+            return src;
         }
 
         public List<IOSRC> IO_LstGet(eVIWER view, eIOTYPE type)
@@ -558,6 +1086,447 @@ namespace Source_MFC
                 default: break;
             }
         }
+
+        public void Job_SetState(eJOBST state)
+        {
+            _Order.state = state;
+            switch (_Order.state)
+            {
+                case eJOBST.None:
+                    _status.bIsManual = false;
+                    DoingDataExchage(eVIWER.Monitor, eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_JOB_Update);
+                    Evt_Dash_Moni_DataExchange?.Invoke(new Noti() { msg = "TEST MVVM View update", nTemp = 5 }, (eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_JOB_PioStart));
+                    break;
+                case eJOBST.Assign:
+                    break;
+                case eJOBST.Enroute:
+                    break;
+                case eJOBST.Arrived:
+                    break;
+                case eJOBST.Transferring:
+                    break;
+                case eJOBST.TransStart:
+                    break;
+                case eJOBST.CarrierChanged:
+                    break;
+                case eJOBST.TransComplete:
+                case eJOBST.UserStopped:
+                    _Order.Init();                    
+                    Job_SetState(eJOBST.None);
+                    break;                
+            }
+            DoingDataExchage(eVIWER.Monitor, eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_JOB_Update);
+        }
+
+        public void VEC_TskStart(eVEC_CMD cmd, SENDARG arg)
+        {
+            var tskVec = Tsk_Get(eTASKLIST.VECCMD) as Tsk_VecCmd;            
+            tskVec.WrkStart(cmd, arg);
+        }
+
+        public void VEC_SendCmd(eVEC_CMD cmd, SENDARG arg)
+        {
+            if ( null != arg )
+            {
+                var data = JCVT_VEC.Set<SENDARG>(arg);
+                vec.Send(cmd, data);
+            }
+            else
+            {
+                vec.Send(cmd);
+            }
+        }
+
+        public void VEC_SetState4Job(eJOBST state)
+        {
+            var vec = _status.vecState;
+            switch (state)
+            {
+                case eJOBST.None:
+                    DoingDataExchage(eVIWER.Monitor, eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_JOB_Reset);
+                    DoingDataExchage(eVIWER.Manual, eDATAEXCHANGE.Model2View, eUID4VM.DASH_MNL_ALL);
+                    vec.JobState = eROBOTST.NotAssigned;                    
+                    break;
+                case eJOBST.Assign:
+                    vec.JobState = eROBOTST.Enroute;
+                    break;
+                case eJOBST.Enroute:
+                    switch (_status.Order.type)
+                    {
+                        case eJOBTYPE.LOADING: case eJOBTYPE.UNLOADING: vec.JobState = eROBOTST.Enroute; break;
+                        case eJOBTYPE.STANDBY: vec.JobState = eROBOTST.Standby; break;
+                        case eJOBTYPE.CAHRGE: vec.JobState = eROBOTST.Charging; break;
+                        default: break;
+                    }
+                    break;
+                case eJOBST.Arrived: break;
+                case eJOBST.Transferring:                    
+                case eJOBST.TransStart:
+                case eJOBST.CarrierChanged:
+                    vec.JobState = (eJOBTYPE.LOADING == _status.Order.type) ? eROBOTST.Depositing : eROBOTST.Acquiring;
+                    break;
+                case eJOBST.TransComplete: break;
+                case eJOBST.UserStopped:
+                    switch (_EQPStatus)
+                    {
+                        case eEQPSATUS.Init:
+                        case eEQPSATUS.Stop:
+                        case eEQPSATUS.Error:
+                        case eEQPSATUS.EMG: break;
+                        default: vec.JobState = eROBOTST.NotAssigned; break;
+                    }
+                    break;
+                default: break;
+            }
+            
+            switch (vec.JobState)
+            {
+                case eROBOTST.None: break;
+                case eROBOTST.NotAssigned:
+                case eROBOTST.Enroute:
+                case eROBOTST.Parked:
+                case eROBOTST.Acquiring:
+                case eROBOTST.Depositing:                    
+                case eROBOTST.Charging:                    
+                case eROBOTST.Standby:
+                    DoingDataExchage(eVIWER.Monitor, eDATAEXCHANGE.Model2View, eUID4VM.DASH_MONI_JOB_Update);                    
+                    break;                
+                default: break;
+            }
+        }
+
+        private bool ChkAlarm()
+        {
+            var rtn = false;
+
+            return rtn;
+        }
+
+
+        private TIMEARG SeqScan = new TIMEARG();
+        public string _SeqScanTime => StopFlag ? "STOPPED" : $"{SeqScan.nCurr} msec";
+        public bool StopFlag { get; set; } = true;
+        public bool ThrdRun { get; set; } = false;
+        public void Start(CHANGEMODEBY oder, bool bManual = false)
+        {            
+            StopFlag = false; ThrdRun = true;
+            if (true == ChkAlarm())
+            {                
+                Logger.Inst.Write(CmdLogType.prdt, $"설비 알람이 발생하여 구동할 수 없습니다.");
+                return;
+            }
+
+            switch (_EQPStatus)
+            {                
+                case eEQPSATUS.Stop:
+                    Logger.Inst.Write(CmdLogType.prdt, $"Sequence 프로세스(Seq Thread) 시작 - {oder.ToString()}, Kindof-{(bManual?"AUTO":"MANUAL")}");
+                    var main = _lstSeqs.Single(t => t.arg.GetID() == eSEQLIST.Main).arg;
+                    switch (main.nStatus)
+                    {
+                        case eSTATE.None: case eSTATE.WorkTrg: _EQPStatus = eEQPSATUS.Idle; break;
+                        default:
+                            switch (main.nStep)
+                            {
+                                case 10:
+                                case DEF_CONST.SEQ_INIT:                                    
+                                    switch (_Order.type)
+                                    {
+                                        case eJOBTYPE.LOADING: case eJOBTYPE.UNLOADING:
+                                            switch (_Order.state)
+                                            {
+                                                case eJOBST.None: _EQPStatus = eEQPSATUS.Idle; break;
+                                                default: _EQPStatus = eEQPSATUS.Run; break;
+                                            }
+                                            break;
+                                        default: _EQPStatus = eEQPSATUS.Idle; break;
+                                    }
+                                    break;
+                                default: _EQPStatus = eEQPSATUS.Run; break;
+                            }
+                            break;
+                    }
+
+                    // 작업 시퀀스 상태확인하여 초기화.
+                    foreach (var item in _lstSeqs)
+                    {
+                        switch (item.arg.GetID())
+                        {
+                            case eSEQLIST.MAX_SEQ: continue;                            
+                            default:
+                                switch (_Order.type)
+                                {
+                                    case eJOBTYPE.NONE:
+                                        item.arg.Init(); // 작업이 없을경우 초기화한다.
+                                        switch (item.arg.GetID())
+                                        {
+                                            case eSEQLIST.Main: item.arg.WorkTrg(); break;
+                                            default: break;
+                                        }
+                                        break;                                                  
+                                    default:
+                                        switch (_Order.state)
+                                        {
+                                            case eJOBST.None: case eJOBST.TransComplete: case eJOBST.UserStopped:
+                                                item.arg.Init();
+                                                switch (item.arg.GetID())
+                                                {
+                                                    case eSEQLIST.Main:
+                                                        item.arg.WorkTrg();
+                                                        break;
+                                                    default: break;
+                                                }
+                                                break;
+                                            default: item.arg.Reset(); break;
+                                        }
+                                        break;
+                                }
+                                break;
+                        }
+                    }
+                    StartTasks();
+                    break;                
+                default: break;
+            }
+        }
+
+        public void Stop(CHANGEMODEBY oder)
+        {
+            switch (_EQPStatus)
+            {
+                case eEQPSATUS.EMG: Reset(CHANGEMODEBY.PROCESS); break;
+                case eEQPSATUS.Idle:
+                case eEQPSATUS.Run:
+                    _EQPStatus = eEQPSATUS.Stopping;
+                    Logger.Inst.Write(CmdLogType.prdt, $"Sequence 프로세스(Tasks Thread) 중지를 시작합니다 - {oder.ToString()}");
+                    break;
+                case eEQPSATUS.Error:
+                    _EQPStatus = eEQPSATUS.Stop;
+                    break;
+                default: break;
+            }
+        }
+
+        public void Reset(CHANGEMODEBY oder)
+        {
+            switch (_EQPStatus)
+            {
+                case eEQPSATUS.Error:
+                    Stop(oder);
+                    Logger.Inst.Write(CmdLogType.prdt, $"Sequence 프로세스(Tasks Thread) 리셋합니다 - {oder.ToString()}");
+                    break;
+                case eEQPSATUS.EMG:
+                    Stop(oder);
+                    Logger.Inst.Write(CmdLogType.prdt, $"Sequence 프로세스(Tasks Thread) 리셋합니다 - {oder.ToString()}");
+                    break;
+                default: break;
+            }
+        }
+
+
+
+        public async void StartTasks()
+        {
+            StopFlag = false; ThrdRun = true;            
+            switch (_Order.type)
+            {
+                case eJOBTYPE.LOADING: case eJOBTYPE.UNLOADING:break;
+                default: break;
+            }
+            Logger.Inst.Write(CmdLogType.prdt, $"Sequence Process 작업 시작");
+            await Tsk_Work();
+            Logger.Inst.Write(CmdLogType.prdt, $"Sequence Process 작업 종료");
+            ThrdRun = false;
+        }
+        
+        public async Task Tsk_Work()
+        {
+            do
+            {
+                bool bWorkDone = false;                
+                foreach (var item in _lstSeqs)
+                {
+                    switch (_EQPStatus)
+                    {                        
+                        case eEQPSATUS.Idle: case eEQPSATUS.Run:
+                            if ( eSEQLIST.MAX_SEQ == item.arg.GetID()) continue;
+                            item.Run();
+                            break;                        
+                        case eEQPSATUS.Stopping:
+                            if (eSEQLIST.MAX_SEQ == item.arg.GetID()) continue;
+
+                            if (false == item.arg.bStop)
+                            {
+                                item.Run();
+                            }
+
+                            switch (item.arg.GetID())
+                            {
+                                case eSEQLIST.Main:
+                                    bWorkDone = item.IsCanStop();
+                                    item.arg.bStop = bWorkDone;
+                                    break;
+                                default:
+                                    if (true == item.IsCanStop())
+                                    {
+                                        item.arg.bStop = true;
+                                    }
+                                    bWorkDone &= item.arg.bStop;
+                                    break;
+                            }
+                            break;
+                        case eEQPSATUS.EMG: bWorkDone = true; break;
+                        default: break;
+                    }
+                    if (true == bWorkDone) break;
+                }
+                await Task.Delay(1);
+                SeqScan.Check();
+                if (true == bWorkDone)
+                {
+                    StopFlag = true;
+                }
+            }
+            while (!StopFlag);
+
+            var tskMplus = Tsk_Get(eTASKLIST.MPLUSCOMM) as Tsk_MPlusComm;            
+            switch (_EQPStatus)
+            {
+                case eEQPSATUS.Init:
+                case eEQPSATUS.EMG:
+                    var main = Seq_Get(eSEQLIST.Main);
+                    switch (main.arg.nErr)
+                    {
+                        case eERROR.None: break; ;
+                        default: msgBox.ShowDialog($"{main.arg.nErr}", MsgBox.MsgType.Error, MsgBox.eBTNSTYLE.OK); break;
+                    }
+                    break;
+                default:
+                    foreach (var item in _lstSeqs)
+                    {
+                        if (item.arg.nErr == eERROR.None) continue;
+                        switch (_EQPStatus)
+                        {
+                            case eEQPSATUS.Init:
+                            case eEQPSATUS.EMG:
+                            case eEQPSATUS.Error: break;
+                            default:
+                                switch (item.arg.nErr)
+                                {
+                                    case eERROR.EMG: _EQPStatus = eEQPSATUS.EMG; break;
+                                    default: _EQPStatus = eEQPSATUS.Error; break;
+                                }
+                                tskMplus.SetErr(item.arg.nErr);
+                                break;
+                        }
+                        msgBox.ShowDialog($"{item.arg.nErr}", MsgBox.MsgType.Error, MsgBox.eBTNSTYLE.OK);
+                        tskMplus.SetErr(eERROR.Clear);
+                        if (eEQPSATUS.EMG == _EQPStatus || eEQPSATUS.Init == _EQPStatus) break;
+                    }
+                    break;
+            }
+
+            switch (_EQPStatus)
+            {
+                case eEQPSATUS.Init:
+                case eEQPSATUS.Initing:
+                case eEQPSATUS.EMG:
+                    {
+                        _EQPStatus = eEQPSATUS.Init;
+                        tskMplus.SetErr(eERROR.None);
+                        break;
+                    }
+                default: _EQPStatus = eEQPSATUS.Stop; break;
+            }            
+            Logger.Inst.Write(CmdLogType.prdt, $"Job 프로세스(Tasks Thread) 종료");
+            ThrdRun = false;
+        }        
+
+        public _SEQBASE Seq_Get(eSEQLIST id)
+        {
+            return _lstSeqs.Single(t => t.arg.GetID() == id);
+        }
+
+        public void Seq_Stop(eSEQLIST id)
+        {
+            var tsk = Seq_Get(id);
+            tsk.arg.StopTrg();
+        }
+
+        public _TSKBASE Tsk_Get(eTASKLIST id)
+        {
+            return _lstTsks.Single(t => t.arg.GetID() == id);
+        }
+
+        public void SetErr(eERROR err, CHANGEMODEBY chg, bool bChgeStatus = true)
+        {
+            var main = _lstSeqs.Single(t => t.arg.GetID() == eSEQLIST.Main).arg;
+            switch (_EQPStatus)
+            {
+                case eEQPSATUS.Stopping:
+                case eEQPSATUS.Idle:
+                case eEQPSATUS.Run:
+                    main.SetErr(err);                    
+                    switch (err)
+                    {
+                        case eERROR.EMG:
+                            _EQPStatus = eEQPSATUS.EMG;
+                            Job_SetState(eJOBST.UserStopped);
+                            break;
+                        default: Stop(CHANGEMODEBY.PROCESS); break;
+                    }
+                    break;
+                case eEQPSATUS.Error:
+                case eEQPSATUS.EMG:
+                default:
+                    eEQPSATUS beforeSt = eEQPSATUS.Initing;
+                    if (true == bChgeStatus)
+                    {
+                        beforeSt = _EQPStatus;
+                    }                    
+                    switch (err)
+                    {
+                        case eERROR.EMG:                                                                                
+                            break;                        
+                        default: break;
+                    }
+                    Logger.Inst.Write(CmdLogType.Err, $"SetErr : {chg.ToString()}에서 {err.ToString()}에러를 발생하였습니다.");
+                    switch (err)
+                    {
+                        case eERROR.EMG: _EQPStatus = eEQPSATUS.EMG; break;
+                        default: _EQPStatus = eEQPSATUS.Error; break;
+                    }
+                    switch (beforeSt)
+                    {
+                        case eEQPSATUS.EMG:
+                        case eEQPSATUS.Stop:
+                            msgBox.ShowDialog($"{err}", MsgBox.MsgType.Error, MsgBox.eBTNSTYLE.OK);
+                            if (true == bChgeStatus)
+                            {
+                                switch (beforeSt)
+                                {
+                                    case eEQPSATUS.Init:
+                                    case eEQPSATUS.Initing: _EQPStatus = eEQPSATUS.Init; break;
+                                    default:
+                                        switch (err)
+                                        {
+                                            case eERROR.EMG: _EQPStatus = eEQPSATUS.Init; break;
+                                            default: _EQPStatus = eEQPSATUS.Stop; break;
+                                        }
+                                        break;
+                                }
+                            }
+                            break;
+                    }
+                    break;
+            }
+        }
+
+        private bool Mplus_RemoteCmd(eREMOTE_MODE mode)
+        {
+            bool rtn = false;
+            return rtn;                
+        }
+
 
     }
 }

@@ -36,6 +36,11 @@ namespace Source_MFC.ViewModels
             msgBox.Evt_MsgBoxDataInit += On_MsgBoxDataInit;
         }
 
+        ~VM_Frm_Msg()
+        {
+            msgBox.Evt_MsgBoxDataInit -= On_MsgBoxDataInit;
+        }
+
         private void WindowLoaded(object obj)
         {
             string[] split = b_Msg.Split('\r');
@@ -47,6 +52,7 @@ namespace Source_MFC.ViewModels
             msgBox.btnRlt = (eBTNTYPE)Convert.ToInt32(obj);
             b_Msg = string.Empty;
             tmrUpdate.Stop();
+            tmrUpdate.Tick -= Tmr_Tick;           //이벤트 추가    
             SetTskProc();
             CloseAction();
         }

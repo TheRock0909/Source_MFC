@@ -1,4 +1,5 @@
-﻿using MaterialDesignThemes.Wpf;
+﻿using KeyPad;
+using MaterialDesignThemes.Wpf;
 using Source_MFC.Global;
 using Source_MFC.Utils;
 using System;
@@ -17,11 +18,70 @@ namespace Source_MFC.ViewModels
         public Action DragMoveAction { get; set; }
         public ICommand Evt_CmdBarMouseDown { get; set; }
         public ICommand Evt_BtnClicked { get; set; }
+        public ICommand Evt_DataExchange4InputBox { get; set; }
         public VM_Frm_InputBox()
         {
             msgBox.Evt_InputBoxDataInit += On_InputBoxDataInit;
             Evt_BtnClicked = new Command(On_BtnClicked);
             Evt_CmdBarMouseDown = new Command(On_BarMouseDown);
+            Evt_DataExchange4InputBox = new Command(On_DataExchange4InputBox);
+        }
+
+        ~VM_Frm_InputBox()
+        {
+           
+        }
+
+        private void On_DataExchange4InputBox(object obj)
+        {
+            var uid = (eUID4VM)obj;
+            On_DataExchange(null, (eDATAEXCHANGE.View2Model, uid));
+        }
+
+        private void On_DataExchange(object sender, (eDATAEXCHANGE dir, eUID4VM id) e)
+        {
+            switch (e.dir)
+            {                
+                case eDATAEXCHANGE.Model2View:
+                    break;
+                case eDATAEXCHANGE.View2Model:
+                    {
+                        if ( null != sender )
+                        {
+                            var datatype = eDATATYPE.NONE;
+                            var strCurr = string.Empty;
+                            switch (e.id)
+                            {
+                                case eUID4VM.ETC_INPUTBOX: datatype = eDATATYPE._str; break;
+                                default: break;
+                            }
+
+                            switch (datatype)
+                            {                                
+                                case eDATATYPE._bool:
+                                    break;
+                                case eDATATYPE._int:
+                                    break;
+                                case eDATATYPE._str:
+                                    {
+                                        VirtualKeyboard keyboardWindow = new VirtualKeyboard(strCurr);
+                                        if (keyboardWindow.ShowDialog() == true)
+                                        {
+                                            b_TxtContent = keyboardWindow.Result;
+                                        }
+                                        break;
+                                    }
+                                case eDATATYPE._float:
+                                    break;
+                                case eDATATYPE._double:
+                                    break;
+                                default: break;
+                            }
+                        }
+                        break;
+                    }
+                default: break;
+            }
         }
 
         private void On_BtnClicked(object obj)
@@ -50,8 +110,6 @@ namespace Source_MFC.ViewModels
 
         private void On_InputBoxDataInit(object sender, INPUTBOXDATA e)
         {
-
-
             b_IconKind = e.packIcon;
             b_Title = e.title;
         }

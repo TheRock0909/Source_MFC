@@ -99,8 +99,8 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="60*"/>
-                        <RowDefinition Height="550*"/>
-                        <RowDefinition Height="150*"/>
+                        <RowDefinition Height="160*"/>
+                        <RowDefinition Height="140*"/>
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0" Name="grd_Top" Background="#FF1368B6" Height="60">

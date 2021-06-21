@@ -23,7 +23,7 @@ namespace Source_MFC.ViewModels
         public ICommand Evt_DataExchange4Goal { get; set; }
         public IEnumerable<eGOALTYPE> eType { get; set; }
         public IEnumerable<eLINE> eLine { get; set; }
-        public IEnumerable<eMFC_MCTYPE> eMCType { get; set; }
+        public IEnumerable<ePIOTYPE> eMCType { get; set; }
         GOALINFO _Goals;
         public VM_UsCtrl_Sys_Goal(MainCtrl ctrl)
         {
@@ -39,7 +39,13 @@ namespace Source_MFC.ViewModels
             Evt_DataExchange4Goal = new Command(On_DataExchange4Goal);
 
             eLine = Enum.GetValues(typeof(eLINE)).Cast<eLINE>();
-            eMCType = Enum.GetValues(typeof(eMFC_MCTYPE)).Cast<eMFC_MCTYPE>();
+            eMCType = Enum.GetValues(typeof(ePIOTYPE)).Cast<ePIOTYPE>();
+        }
+
+        ~VM_UsCtrl_Sys_Goal()
+        {
+            _ctrl.Evt_Sys_Goal_List_DataExchange -= On_List_DataExchange;
+            _ctrl.Evt_Sys_Goal_Item_DataExchange -= On_DataExchange;
         }
 
 
@@ -79,7 +85,7 @@ namespace Source_MFC.ViewModels
                     {
                         SubChild2.Add(new TreeData() { b_Name = goal.label, b_Parent = item.ToString() });
                     }
-                    SubChild1.Add(new TreeData() { b_Name = $"Line #{line.ToString().Replace("_", "")}", b_Children = SubChild2, b_Parent = line.ToString() });
+                    SubChild1.Add(new TreeData() { b_Name = $"Line #{Ctrls.Remove_(line.ToString())}", b_Children = SubChild2, b_Parent = line.ToString() });
                 }
                 TreeData treeData = new TreeData() { b_Name = item.ToString(), b_Children = SubChild1, b_Parent = item.ToString() };
                 b_TreeGoals.Add(treeData);
@@ -91,7 +97,7 @@ namespace Source_MFC.ViewModels
         {
             foreach (eLINE line in Enum.GetValues(typeof(eLINE)))
             {
-                var line4 = $"Line #{line.ToString().Replace("_", "")}";
+                var line4 = $"Line #{Ctrls.Remove_(line.ToString())}";
                 var chk = selitem.Equals(line4);
                 if ( true == chk)
                 {
@@ -220,7 +226,7 @@ namespace Source_MFC.ViewModels
                 b_Goaltype = new eGOALTYPE();
                 b_LineSel = new eLINE();
                 b_GoalInfo = b_HostName = b_Label = string.Empty;
-                b_eMCType = eMFC_MCTYPE.NONE;
+                b_eMCType = ePIOTYPE.NOUSE;
             }
         }
 
@@ -265,25 +271,30 @@ namespace Source_MFC.ViewModels
             {
                 case eLINE.None: msgBox.ShowDialog($"라인을 선택해 주세요.", MsgBox.MsgType.Warn, MsgBox.eBTNSTYLE.OK); break;                
                 default:
-                    var edit = msgBox.ShowInputBoxDlg(MaterialDesignThemes.Wpf.PackIconKind.DatabaseEdit, $"Goal Editor");
+                    VirtualKeyboard keyboardWindow = new VirtualKeyboard("");
+                    if (keyboardWindow.ShowDialog() == true)
+                    {
+                        var rtn = _ctrl.DoingDataExchage(eVIWER.Goal, eDATAEXCHANGE.View2Model, eUID4VM.GOAL_ADD
+                                                               , new GOALITEM() { name = keyboardWindow.Result, type = currItem.type, line = currLine, label = keyboardWindow.Result });
+                        if (true == rtn)
+                        {
+                            _ctrl.DoingDataExchage(eVIWER.Goal, eDATAEXCHANGE.Model2View, eUID4VM.GOAL_LIST);
+                        }
+                        else
+                        {
+                            msgBox.ShowDialog($"{ currItem.type}-{keyboardWindow.Result}의 골 등록에 실패하였습니다.", MsgBox.MsgType.Warn, MsgBox.eBTNSTYLE.OK);
+                        }
+                    }
+                    /*var edit = msgBox.ShowInputBoxDlg(MaterialDesignThemes.Wpf.PackIconKind.DatabaseEdit, $"Goal Editor");
                     switch (edit.rtn)
                     {
                         case MsgBox.eBTNTYPE.OK:
                             {
-                                var rtn = _ctrl.DoingDataExchage(eVIWER.Goal, eDATAEXCHANGE.View2Model, eUID4VM.GOAL_ADD
-                                                               , new GOALITEM() { name = edit.rlt, type = currItem.type, line = currLine, label = edit.rlt });
-                                if (true == rtn)
-                                {
-                                    _ctrl.DoingDataExchage(eVIWER.Goal, eDATAEXCHANGE.Model2View, eUID4VM.GOAL_LIST);
-                                }
-                                else
-                                {
-                                    msgBox.ShowDialog($"{ currItem.type}-{edit.rlt}의 골 등록에 실패하였습니다.", MsgBox.MsgType.Warn, MsgBox.eBTNSTYLE.OK);
-                                }
+                                
                                 break;
                             }
                         default: break;
-                    }
+                    }*/
                     break;
             }            
         }
@@ -325,7 +336,7 @@ namespace Source_MFC.ViewModels
 
         private void On_cmbMCTypeSelectedChanged(object obj)
         {
-            var type = (eMFC_MCTYPE)obj;
+            var type = (ePIOTYPE)obj;
             if (currItem.mcType != type)
             {
                 _ctrl.DoingDataExchage(eVIWER.Goal, eDATAEXCHANGE.View2Model, eUID4VM.GOAL_MCType, $"{currItem.type};{currItem.name};{type};");
@@ -358,7 +369,7 @@ namespace Source_MFC.ViewModels
             set { currItem.line = value; OnPropertyChanged("b_LineSel"); }
         }
 
-        public eMFC_MCTYPE b_eMCType
+        public ePIOTYPE b_eMCType
         {
             get { return currItem.mcType; }
             set { currItem.mcType = value; OnPropertyChanged("b_MCType"); }

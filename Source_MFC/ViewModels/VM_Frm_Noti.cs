@@ -16,6 +16,10 @@ namespace Source_MFC.ViewModels
         {
             b_TxtContent = msg;
         }
+        ~VM_Frm_Noti()
+        {
+            
+        }
 
         string txtContent = string.Empty;
         public string b_TxtContent
