@@ -84,6 +84,7 @@
     <Compile Include="Global\Sys.cs" />
     <Compile Include="Global\_Data.cs" />
     <Compile Include="MainCtrl.cs" />
+    <Compile Include="Utils\BackUpLogger.cs" />
     <Compile Include="Utils\BitVector64.cs" />
     <Compile Include="Utils\Commands.cs" />
     <Compile Include="Utils\Ctrls.cs" />

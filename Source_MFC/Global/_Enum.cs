@@ -512,6 +512,21 @@ namespace Source_MFC.Global
         , Label
     }
 
+    public enum eBackUpType
+    {
+        Default,
+        Bak,
+        DateBak
+    }
+
+    public enum eJsonName
+    {
+        Cfg,
+        Goal,
+        Status,
+        IO
+    }
+
     public class DEF_CONST
     {
         public const int SEQ_FINISH = 0;

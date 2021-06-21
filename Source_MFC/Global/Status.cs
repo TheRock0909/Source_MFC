@@ -298,6 +298,10 @@ namespace Source_MFC.Global
                 var loadData = File.ReadAllText(path);
                 var temp = JsonConvert.DeserializeObject<STATUS>(loadData);
                 st = temp;
+
+                SaveParam(st, eBackUpType.Bak, eJsonName.Status);
+                SaveParam(st, eBackUpType.DateBak, eJsonName.Status);
+
             }
             catch (Exception e)
             {
@@ -306,6 +310,21 @@ namespace Source_MFC.Global
                 return false;
             }
             return true;
+        }
+
+        public static void SaveParam(STATUS st, eBackUpType type, eJsonName name)
+        {
+            string path = BackUpLogger.Inst.RoutejsonData(type, name);
+            var saveStatus = JsonConvert.SerializeObject(st);
+            File.WriteAllText(path, saveStatus);
+        }
+
+        public static void LoadParam(STATUS st, eBackUpType type, eJsonName name)
+        {
+            string path = BackUpLogger.Inst.RoutejsonData(type, name);
+            var loadData = File.ReadAllText(path);
+            var temp = JsonConvert.DeserializeObject<STATUS>(loadData);
+            st = temp;
         }
 
         public void User_Set(USER id, bool IsLogOut = false)
