@@ -47,6 +47,8 @@ namespace Source_MFC.ViewModels
                         b_FeedTimeOut_End = $"{e.data.nFeedTimeOut_End}";
                         b_SensorDelay = $"{e.data.nSenDelay}";
                         b_CommTimeout = $"{e.data.nCommTimeout}";
+                        b_ConvSpd_Normal = $"{e.data.nConvSpd_Normal}";
+                        b_ConvSpd_Slow = $"{e.data.nConvSpd_Slow}";
                         break;
                     }
                 case eDATAEXCHANGE.View2Model:
@@ -69,6 +71,8 @@ namespace Source_MFC.ViewModels
                                     case eUID4VM.PIO_4: strCurr = $"{b_FeedTimeOut_End}"; break;
                                     case eUID4VM.SENDELAY: strCurr = $"{b_SensorDelay}"; break;
                                     case eUID4VM.COMM_TIMEOUT: strCurr = $"{b_CommTimeout}"; break;
+                                    case eUID4VM.CONVSPD_NORMAL: strCurr = $"{b_ConvSpd_Normal}"; break;
+                                    case eUID4VM.CONVSPD_SLOW: strCurr = $"{b_ConvSpd_Slow}"; break;
                                     default: break;
                                 }
                                 break;
@@ -174,6 +178,25 @@ namespace Source_MFC.ViewModels
             get { return commTimeout; }
             set {
                 this.MutateVerbose(ref commTimeout, value, RaisePropertyChanged());
+            }
+        }
+
+
+        string convSpd_Normal;
+        public string b_ConvSpd_Normal
+        {
+            get { return convSpd_Normal; }
+            set {
+                this.MutateVerbose(ref convSpd_Normal, value, RaisePropertyChanged());
+            }
+        }
+
+        string convSpd_Slow;
+        public string b_ConvSpd_Slow
+        {
+            get { return convSpd_Slow; }
+            set {
+                this.MutateVerbose(ref convSpd_Slow, value, RaisePropertyChanged());
             }
         }
 

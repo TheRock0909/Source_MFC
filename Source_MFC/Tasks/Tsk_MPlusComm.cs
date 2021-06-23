@@ -64,7 +64,7 @@ namespace Source_MFC.Tasks
                         break;
                     case 120:
                         {
-                            sendTsk = SendSatate();                            
+                            sendTsk = SendStatus();                            
                             arg.nStep = 125;
                             break;
                         }
@@ -248,7 +248,7 @@ namespace Source_MFC.Tasks
             Queue_Add(que);            
         }
 
-        public async Task<bool> SendSatate()
+        public async Task<bool> SendStatus()
         {
             MPlus mplus = _ctrl.mplus;
             if (null == mplus) return false;

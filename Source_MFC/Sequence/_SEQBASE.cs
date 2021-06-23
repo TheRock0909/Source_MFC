@@ -46,14 +46,29 @@ namespace Source_MFC.Sequence.MainTasks
             return _ctrl.Seq_Get(id);            
         }
 
-        public void SetErr(eERROR err)
+        virtual public void SetErr(eERROR err, int nStep = DEF_CONST.SEQ_FINISH)
         {
             switch (arg.nErr)
             {
                 case eERROR.None:
                     arg.SetErr(err);
+                    switch (nStep)
+                    {
+                        case DEF_CONST.SEQ_FINISH: break;
+                        default: arg.nStep = nStep; break;
+                    }
                     break;
                 default: break;
+            }            
+        }
+
+        public void SetStop(int nStep = DEF_CONST.SEQ_FINISH)
+        {
+            arg.bStop = true;
+            switch (nStep)
+            {
+                case DEF_CONST.SEQ_FINISH: break;
+                default: arg.nStep = nStep; break;
             }
         }
 
@@ -62,6 +77,31 @@ namespace Source_MFC.Sequence.MainTasks
             arg.WorkTrg();
         }
 
+        public void ResetTime()
+        {
+            arg.ResetTime();
+        }
+
+
+        virtual public void ChkSeqStop()
+        {
+            switch (_ctrl._EQPStatus)
+            {                
+                case eEQPSATUS.Stopping:
+                    switch (arg.nStep)
+                    {
+                        case DEF_CONST.SEQ_FINISH:
+                            if (false == arg.bStop)
+                            {
+                                arg.bStop = true;
+                            }
+                            break;
+                        default: break;
+                    }
+                    break;                
+                default: break;
+            }
+        }
 
     }
 }

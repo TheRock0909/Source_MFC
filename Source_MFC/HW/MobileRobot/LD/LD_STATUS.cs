@@ -191,6 +191,20 @@ namespace Source_MFC.HW.MobileRobot.LD
                             }
                             break;
                         }
+                    case eVECST_CMD_TYPE.TRANSGO:                    
+                        {
+                            var buff = new MP_DISTBTW();
+                            var rtn = ParsTransGo(rcvMsg, ref buff);
+                            if ( true == rtn )
+                            {
+                                dist = new MP_DISTBTW() { cmd = buff.cmd, goal1 = buff.goal1 };
+                            }
+                            else
+                            {
+                                dist.cmd = eSTATE.Failed.ToString();
+                            }
+                            break;
+                        }
                     default: break;
                 }
             }
@@ -199,6 +213,30 @@ namespace Source_MFC.HW.MobileRobot.LD
                 cmd = eVECST_CMD_TYPE.NONE;
                 state = new LD_STATE(eVECST_CMD_TYPE.NONE, null);
             }
+        }
+
+        private bool ParsTransGo(string msg, ref MP_DISTBTW dist)
+        {
+            var rtn = true;
+            var result = Ctrls.Remove_line(msg);
+            var split = result.Split('_');
+            switch (split[3])
+            {
+                case "UNLOADJRUL":
+                case "UNLOADKCUL":
+                    dist.cmd = eJOBTYPE.UNLOADING.ToString();
+                    dist.goal1 = $"{split[1]}_{split[2]}_U";
+                    dist.goal2 = split[3].Contains("UNLOADJRUL") ? ePIOTYPE.JR.ToString() : ePIOTYPE.KCH.ToString();
+                    break;
+                case "LOADJRLD":
+                case "LOADKCLD":
+                    dist.cmd = eJOBTYPE.LOADING.ToString();
+                    dist.goal1 = $"{split[1]}_{split[2]}_L";
+                    dist.goal2 = split[3].Contains("LOADJRLD") ? ePIOTYPE.JR.ToString() : ePIOTYPE.KCH.ToString();
+                    break;
+                default: rtn = false; break;
+            }            
+            return rtn;
         }
 
         private bool ParsDistance(string msg, ref MP_DISTBTW dist)
@@ -240,11 +278,11 @@ namespace Source_MFC.HW.MobileRobot.LD
                     string[] arclmsgs = temp.Replace(" ", "_").ToUpper().Split('_');
                     if (4 <= arclmsgs.Count())
                     {
-
+                        rtn = arclmsgs[0].ToUpper().ToEnum<eVECST_CMD_TYPE>();
                     }
                     else
                     {
-                        //rtn = 
+                        rtn = temp.ToUpper().ToEnum<eVECST_CMD_TYPE>();
                     }                    
                     break;
                 default: break;

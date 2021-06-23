@@ -1,4 +1,5 @@
-﻿using Source_MFC.Global;
+﻿using KeyPad;
+using Source_MFC.Global;
 using Source_MFC.Utils;
 using System;
 using System.Collections.Generic;
@@ -18,14 +19,20 @@ namespace Source_MFC.ViewModels
         JOBOPT _opt;
         public ICommand Evt_BtnClicked { get; set; }
         public ICommand Evt_SelectedItem { get; set; }
+        public ICommand Evt_DataExchange4Manual { get; set; }
+        public IEnumerable<eSEQLIST> eSeqlist { get; set; }
+        public IEnumerable<eVEC_CMD> eVecCmdLst { get; set; }        
         public VM_UsCtrl_Dash_Manual(MainCtrl ctrl)
         {
             _ctrl = ctrl;
             _Goals = _Data.Inst.sys.goal;
             _opt = ctrl._status.Order.opt;
+            eSeqlist = Enum.GetValues(typeof(eSEQLIST)).Cast<eSEQLIST>();
+            eVecCmdLst = Enum.GetValues(typeof(eVEC_CMD)).Cast<eVEC_CMD>();
             _ctrl.Evt_Dash_Manual_DataExchange += On_DataExchange;
             Evt_BtnClicked = new Command(On_BtnClicked, CanExecute);
             Evt_SelectedItem = new Command(On_SelectedItem);
+            Evt_DataExchange4Manual = new Command(On_DataExchange4Manual);
         }
 
         ~VM_UsCtrl_Dash_Manual()
@@ -33,6 +40,12 @@ namespace Source_MFC.ViewModels
             _ctrl.Evt_Dash_Manual_DataExchange -= On_DataExchange;
             b_lstGoals.CollectionChanged -= On_CollectionChanged;
             b_lstGoals = null;
+        }
+
+        private void On_DataExchange4Manual(object obj)
+        {
+            var uid = (eUID4VM)Convert.ToInt32(obj);
+            On_DataExchange(obj, (eDATAEXCHANGE.View2Model, uid));
         }
 
         public bool CanExecute(object parameter)
@@ -54,6 +67,78 @@ namespace Source_MFC.ViewModels
                         case eUID4VM.DASH_MNL_RDO_GoalType_2:                            
                         case eUID4VM.DASH_MNL_RDO_GoalType_3:
                             break;
+                        case eUID4VM.DASH_MNL_SEQ_INIT:                            
+                        case eUID4VM.DASH_MNL_SEQ_START:                            
+                        case eUID4VM.DASH_MNL_SEQ_STOP:
+                            switch (b_SeqList)
+                            {                                
+                                case eSEQLIST.EscapeEQP:
+                                    switch (_Data.Inst.sys.cfg.fac.seqMode)
+                                    {
+                                        case eSCENARIOMODE.PC: return true;                                        
+                                        default:return false;
+                                    }
+                                case eSEQLIST.Move2Dst:                                    
+                                case eSEQLIST.PIO:                                    
+                                case eSEQLIST.Pick:                                    
+                                case eSEQLIST.Drop: return true;
+                                case eSEQLIST.MAX_SEQ:                                    
+                                default:return false;
+                            }
+                        case eUID4VM.DASH_MNL_VECTSK_INIT:
+                        case eUID4VM.DASH_MNL_VECTSK_START:
+                        case eUID4VM.DASH_MNL_VECTSK_STOP:
+                            switch (b_vecCmdLst)
+                            {
+                                case eVEC_CMD.None:return false;                                
+                                default:break ;
+                            }
+                            break;
+                        case eUID4VM.DASH_MNL_VTSK_PARA_GOAL1:
+                            switch (b_vecCmdLst)
+                            {                                
+                                case eVEC_CMD.Go2Goal:                
+                                case eVEC_CMD.Go2Straight:
+                                case eVEC_CMD.Dock:                                
+                                case eVEC_CMD.GetDistBetween:
+                                case eVEC_CMD.GetDistFromHere:
+                                case eVEC_CMD.LocalizeAtGoal: break;
+                                default: return false;
+                            }
+                            break;
+                        case eUID4VM.DASH_MNL_VTSK_PARA_GOAL2:
+                            switch (b_vecCmdLst)
+                            {
+                                case eVEC_CMD.GetDistBetween: break;
+                                default: return false;
+                            }
+                            break;
+                        case eUID4VM.DASH_MNL_VTSK_PARA_POSX:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_POSY:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_POSR:
+                            switch (b_vecCmdLst)
+                            {
+                                case eVEC_CMD.Go2Point: case eVEC_CMD.Go2Straight: break;
+                                default: return false;
+                            }
+                            break;
+                        case eUID4VM.DASH_MNL_VTSK_PARA_MOVEX:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_SPEED:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_ACC:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_DCC:
+                            switch (b_vecCmdLst)
+                            {
+                                case eVEC_CMD.MoveDeltaHeading: case eVEC_CMD.MoveFront: break;
+                                default: return false;
+                            }
+                            break;
+                        case eUID4VM.DASH_MNL_VTSK_PARA_MSG:
+                            switch (b_vecCmdLst)
+                            {
+                                case eVEC_CMD.Say: case eVEC_CMD.SendMassage: break;
+                                default: return false;
+                            }
+                            break;
                         default: break;
                     }
                     break;
@@ -66,6 +151,23 @@ namespace Source_MFC.ViewModels
                         case eUID4VM.DASH_MNL_RDO_GoalType_2:
                         case eUID4VM.DASH_MNL_RDO_GoalType_3:
                             break;
+                        case eUID4VM.DASH_MNL_SEQ_INIT:
+                        case eUID4VM.DASH_MNL_SEQ_START:
+                        case eUID4VM.DASH_MNL_SEQ_STOP:
+                        case eUID4VM.DASH_MNL_VECTSK_INIT:
+                        case eUID4VM.DASH_MNL_VECTSK_START:
+                        case eUID4VM.DASH_MNL_VECTSK_STOP:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_GOAL1:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_GOAL2:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_POSX:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_POSY:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_POSR:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_MOVEX:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_SPEED:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_ACC:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_DCC:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_MSG:                            
+                            return false;
                         default: break;
                     }
                     break;
@@ -203,6 +305,47 @@ namespace Source_MFC.ViewModels
                             eGOALTYPE type = (eGOALTYPE)((int)e.id - (int)eUID4VM.DASH_MNL_RDO_GoalType_0);
                             UpdateGoalList(type);
                             break;
+                        case eUID4VM.DASH_MNL_VTSK_PARA_GOAL1: case eUID4VM.DASH_MNL_VTSK_PARA_GOAL2: 
+                        case eUID4VM.DASH_MNL_VTSK_PARA_POSX : case eUID4VM.DASH_MNL_VTSK_PARA_POSY : case eUID4VM.DASH_MNL_VTSK_PARA_POSR:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_MOVEX: case eUID4VM.DASH_MNL_VTSK_PARA_SPEED: case eUID4VM.DASH_MNL_VTSK_PARA_ACC:
+                        case eUID4VM.DASH_MNL_VTSK_PARA_DCC  : case eUID4VM.DASH_MNL_VTSK_PARA_MSG  :
+                            {                                
+                                var strCurr = string.Empty;
+                                switch (e.id)
+                                {
+                                    case eUID4VM.DASH_MNL_VTSK_PARA_GOAL1: strCurr = b_VParam_Goal1; break;
+                                    case eUID4VM.DASH_MNL_VTSK_PARA_GOAL2: strCurr = b_VParam_Goal2; break;
+                                    case eUID4VM.DASH_MNL_VTSK_PARA_POSX: strCurr = b_VParam_PosX; break;
+                                    case eUID4VM.DASH_MNL_VTSK_PARA_POSY: strCurr = b_VParam_PosY; break;
+                                    case eUID4VM.DASH_MNL_VTSK_PARA_POSR: strCurr = b_VParam_PosR; break;
+                                    case eUID4VM.DASH_MNL_VTSK_PARA_MOVEX: strCurr = b_VParam_Move; break;
+                                    case eUID4VM.DASH_MNL_VTSK_PARA_SPEED: strCurr = b_VParam_Spd; break;
+                                    case eUID4VM.DASH_MNL_VTSK_PARA_ACC: strCurr = b_VParam_Acc; break;
+                                    case eUID4VM.DASH_MNL_VTSK_PARA_DCC: strCurr = b_VParam_Dec; break;
+                                    case eUID4VM.DASH_MNL_VTSK_PARA_MSG: strCurr = b_VParam_Msg; break;
+                                    default: break;
+                                }
+                                
+                                VirtualKeyboard keyboardWindow = new VirtualKeyboard(strCurr);
+                                if (keyboardWindow.ShowDialog() == true)
+                                {
+                                    switch (e.id)
+                                    {
+                                        case eUID4VM.DASH_MNL_VTSK_PARA_GOAL1: b_VParam_Goal1 = keyboardWindow.Result; break;
+                                        case eUID4VM.DASH_MNL_VTSK_PARA_GOAL2: b_VParam_Goal2 = keyboardWindow.Result; break;
+                                        case eUID4VM.DASH_MNL_VTSK_PARA_POSX: b_VParam_PosX = keyboardWindow.Result; break;
+                                        case eUID4VM.DASH_MNL_VTSK_PARA_POSY: b_VParam_PosY = keyboardWindow.Result; break;
+                                        case eUID4VM.DASH_MNL_VTSK_PARA_POSR: b_VParam_PosR = keyboardWindow.Result; break;
+                                        case eUID4VM.DASH_MNL_VTSK_PARA_MOVEX: b_VParam_Move = keyboardWindow.Result; break;
+                                        case eUID4VM.DASH_MNL_VTSK_PARA_SPEED: b_VParam_Spd = keyboardWindow.Result; break;
+                                        case eUID4VM.DASH_MNL_VTSK_PARA_ACC: b_VParam_Acc = keyboardWindow.Result; break;
+                                        case eUID4VM.DASH_MNL_VTSK_PARA_DCC: b_VParam_Dec = keyboardWindow.Result; break;
+                                        case eUID4VM.DASH_MNL_VTSK_PARA_MSG: b_VParam_Msg = keyboardWindow.Result; break;
+                                        default: break;
+                                    }
+                                }
+                                break;
+                            }
                         default: break;
                     }
                     break;                
@@ -210,18 +353,154 @@ namespace Source_MFC.ViewModels
             }
         }
 
+        MsgBox msgBox = MsgBox.Inst;
         private void On_BtnClicked(object obj)
         {
             eUID4VM uid = (eUID4VM)Convert.ToInt32(obj);
             switch (uid)
-            {               
-                case eUID4VM.DASH_MNL_BTN_MAKEORDER:                    
+            {             
+                case eUID4VM.DASH_MNL_SEQ_SELECTION:
                     break;
                 case eUID4VM.DASH_MNL_RDO_GoalType_0:                    
                 case eUID4VM.DASH_MNL_RDO_GoalType_1:                    
                 case eUID4VM.DASH_MNL_RDO_GoalType_2:                    
                 case eUID4VM.DASH_MNL_RDO_GoalType_3:
                     On_DataExchange(obj, (eDATAEXCHANGE.View2Model, uid));
+                    break;
+                case eUID4VM.DASH_MNL_BTN_MAKEORDER:        
+                case eUID4VM.DASH_MNL_SEQ_INIT:
+                case eUID4VM.DASH_MNL_SEQ_START:
+                case eUID4VM.DASH_MNL_SEQ_STOP:
+                case eUID4VM.DASH_MNL_VECTSK_INIT:
+                case eUID4VM.DASH_MNL_VECTSK_START:
+                case eUID4VM.DASH_MNL_VECTSK_STOP:
+                    switch (_ctrl._EQPStatus)
+                    {                        
+                        case eEQPSATUS.Stop:
+                            if ( _ctrl._status.bIsManual )
+                            {
+                                switch (_ctrl._Order.state)
+                                {
+                                    case eJOBST.None:
+                                        switch (uid)
+                                        {
+                                            case eUID4VM.DASH_MNL_BTN_MAKEORDER:
+                                                {
+                                                    eJOBTYPE type = eJOBTYPE.NONE;
+                                                    switch (goalType)
+                                                    {
+                                                        case eGOALTYPE.Pickup: type = eJOBTYPE.UNLOADING; break;
+                                                        case eGOALTYPE.Dropoff: type = eJOBTYPE.LOADING; break;
+                                                        case eGOALTYPE.Charge: type = eJOBTYPE.CAHRGE; break;
+                                                        case eGOALTYPE.Standby: type = eJOBTYPE.STANDBY; break;
+                                                        default: break;
+                                                    }
+
+                                                    switch (type)
+                                                    {
+                                                        case eJOBTYPE.NONE: break;                                                        
+                                                        default:
+                                                            {
+                                                                MP_DISTBTW data = new MP_DISTBTW();
+                                                                var goal = _Goals.Get(goalType, b_SelGoalName, eSRCHGOALBY.Label);
+                                                                data.cmd = type.ToString();
+                                                                data.goal1 = goal.name;
+                                                                data.goal2 = goal.pos.ToString();
+                                                                var job = _ctrl.MNL_GetJobOrderStr(data);
+                                                                var opt = new Any64();
+                                                                opt[0] = b_Opt_Skip_Move2;
+                                                                opt[1] = b_Opt_Skip_PIO;
+                                                                opt[2] = b_Opt_Skip_Transfer;
+                                                                _ctrl.On_MplusRecvData(this, (job, true, opt.INT32_0));
+                                                                break;
+                                                            }
+                                                    }                                                    
+                                                    break;
+                                                }
+                                            case eUID4VM.DASH_MNL_SEQ_INIT:
+                                                switch (b_SeqList)
+                                                {
+                                                    case eSEQLIST.PIO:
+                                                        switch (b_SelGoalType.ToEnum<eGOALTYPE>())
+                                                        {
+                                                            case eGOALTYPE.Pickup:
+                                                                _ctrl.Job_ManualStart(b_SeqList, eJOBTYPE.UNLOADING);
+                                                                break;
+                                                            case eGOALTYPE.Dropoff:
+                                                                _ctrl.Job_ManualStart(b_SeqList, eJOBTYPE.LOADING);
+                                                                break;
+                                                            default: return;
+                                                        }
+                                                        break;
+                                                    default: _ctrl.Job_ManualStart(b_SeqList); ; break;
+                                                }
+                                                break;
+                                            case eUID4VM.DASH_MNL_SEQ_START:
+                                                switch (b_SeqList)
+                                                {
+                                                    case eSEQLIST.EscapeEQP:
+                                                        switch (_Data.Inst.sys.cfg.fac.seqMode)
+                                                        {
+                                                            case eSCENARIOMODE.PC: _ctrl.Job_ManualStart(b_SeqList); break;                                                            
+                                                            default:return;
+                                                        }
+                                                        break;
+                                                    case eSEQLIST.PIO:
+                                                        switch (b_SelGoalType.ToEnum<eGOALTYPE>())
+                                                        {
+                                                            case eGOALTYPE.Pickup:
+                                                                _ctrl.Job_ManualStart(b_SeqList, eJOBTYPE.UNLOADING);
+                                                                break;
+                                                            case eGOALTYPE.Dropoff:
+                                                                _ctrl.Job_ManualStart(b_SeqList, eJOBTYPE.LOADING);
+                                                                break;
+                                                            default: return;
+                                                        }
+                                                        break;
+                                                    case eSEQLIST.Pick: case eSEQLIST.Drop: _ctrl.Job_ManualStart(b_SeqList); break;
+                                                    default:return ;
+                                                }
+                                                break;
+                                            case eUID4VM.DASH_MNL_SEQ_STOP:
+                                                switch (b_SeqList)
+                                                {
+                                                    case eSEQLIST.PIO:
+                                                        switch (b_SelGoalType.ToEnum<eGOALTYPE>())
+                                                        {
+                                                            case eGOALTYPE.Pickup:
+                                                                _ctrl.Job_ManualStop(b_SeqList, eJOBTYPE.UNLOADING);
+                                                                break;
+                                                            case eGOALTYPE.Dropoff:
+                                                                _ctrl.Job_ManualStop(b_SeqList, eJOBTYPE.LOADING);
+                                                                break;
+                                                            default: return;
+                                                        }
+                                                        break;
+                                                    default: _ctrl.Job_ManualStop(b_SeqList); ; break;
+                                                }
+                                                break;
+                                            case eUID4VM.DASH_MNL_VECTSK_INIT:
+                                                vecParam = new SENDARG();
+                                                _ctrl.VEC_TskStop();
+                                                break;
+                                            case eUID4VM.DASH_MNL_VECTSK_START:
+                                                _ctrl.VEC_TskStart(b_vecCmdLst, vecParam);
+                                                break;
+                                            case eUID4VM.DASH_MNL_VECTSK_STOP:
+                                                _ctrl.VEC_TskStop();
+                                                break;
+                                        }
+                                        break;
+                                    default: msgBox.ShowDialog($"잡 수행중입니다. 잡 완료 후 가동가능합니다.", MsgBox.MsgType.Warn, MsgBox.eBTNSTYLE.OK); break;
+                                }
+                            }
+                            else
+                            {
+                                msgBox.ShowDialog($"매뉴얼 모드로 변경 해 주십시오.", MsgBox.MsgType.Warn, MsgBox.eBTNSTYLE.OK);
+                            }
+                            break;                       
+                        default: msgBox.ShowDialog($"설비상태를 정지상태로 변경 해 주십시오.", MsgBox.MsgType.Warn, MsgBox.eBTNSTYLE.OK); break;
+                    }
                     break;
             }
         }
@@ -243,56 +522,56 @@ namespace Source_MFC.ViewModels
         public string b_SelGoalType
         {
             get { return SelGoalType; }
-            set { SelGoalType = value; OnPropertyChanged("b_SelGoalType"); }
+            set { this.MutateVerbose(ref SelGoalType, value, RaisePropertyChanged()); }
         }
 
         string SelGoalName = string.Empty;
         public string b_SelGoalName
         {
             get { return SelGoalName; }
-            set { SelGoalName = value; OnPropertyChanged("b_SelGoalName"); }
+            set { this.MutateVerbose(ref SelGoalName, value, RaisePropertyChanged()); }
         }
 
         string Line = string.Empty;
         public string b_Line
         {
             get { return Line; }
-            set { Line = value; OnPropertyChanged("b_Line"); }
+            set { this.MutateVerbose(ref Line, value, RaisePropertyChanged()); }
         }
 
         string MCType = string.Empty;
         public string b_MCType
         {
             get { return MCType; }
-            set { MCType = value; OnPropertyChanged("b_MCType"); }
+            set { this.MutateVerbose(ref MCType, value, RaisePropertyChanged()); }
         }
 
         string HostName = string.Empty;
         public string b_HostName
         {
             get { return HostName; }
-            set { HostName = value; OnPropertyChanged("b_HostName"); }
+            set { this.MutateVerbose(ref HostName, value, RaisePropertyChanged()); }
         }
 
         string Position = string.Empty;
         public string b_Position
         {
             get { return Position; }
-            set { Position = value; OnPropertyChanged("b_Position"); }
+            set { this.MutateVerbose(ref Position, value, RaisePropertyChanged()); }
         }
 
         string EscapeDist = string.Empty;
         public string b_EscapeDist
         {
             get { return EscapeDist; }
-            set { EscapeDist = value; OnPropertyChanged("b_EscapeDist"); }
+            set { this.MutateVerbose(ref EscapeDist, value, RaisePropertyChanged()); }
         }
 
         string GoalName = string.Empty;
         public string b_GoalName
         {
             get { return GoalName; }
-            set { GoalName = value; OnPropertyChanged("b_GoalName"); }
+            set { this.MutateVerbose(ref GoalName, value, RaisePropertyChanged()); }
         }
 
         public bool b_Opt_Skip_Move2
@@ -318,12 +597,112 @@ namespace Source_MFC.ViewModels
         public ObservableCollection<GOAL_NODE> b_lstGoals
         {
             get { return lstGoal; }
+            set { this.MutateVerbose(ref lstGoal, value, RaisePropertyChanged()); }
+        }
+
+        
+        eSEQLIST seqList = eSEQLIST.MAX_SEQ;
+        public eSEQLIST b_SeqList
+        {
+            get { return seqList; }
+            set { this.MutateVerbose(ref seqList, value, RaisePropertyChanged()); }
+        }
+
+        eVEC_CMD vecCmdLst = eVEC_CMD.None;
+        public eVEC_CMD b_vecCmdLst
+        {
+            get { return vecCmdLst; }
+            set { this.MutateVerbose(ref vecCmdLst, value, RaisePropertyChanged()); }
+        }
+
+        SENDARG vecParam = new SENDARG();
+        public string b_VParam_Goal1
+        {
+            get { return vecParam.goal_1st; }
+            set { vecParam.goal_1st = value; OnPropertyChanged(); }
+        }
+
+        public string b_VParam_Goal2
+        {
+            get { return vecParam.goal_2nd; }
+            set { vecParam.goal_2nd = value; OnPropertyChanged(); }
+        }
+
+        public string b_VParam_Msg
+        {
+            get { return vecParam.msg; }
+            set { vecParam.msg = value; OnPropertyChanged(); }
+        }
+
+        public string b_VParam_PosX
+        {
+            get { return vecParam.pos.x.ToString(); }
+            set { int.TryParse(value, out vecParam.pos.x); OnPropertyChanged(); }
+        }
+
+        public string b_VParam_PosY
+        {
+            get { return vecParam.pos.y.ToString(); }
+            set { int.TryParse(value, out vecParam.pos.y); OnPropertyChanged(); }
+        }
+        public string b_VParam_PosR
+        {
+            get { return vecParam.pos.r.ToString(); }
+            set { int.TryParse(value, out vecParam.pos.r); OnPropertyChanged(); }
+        }
+
+        public string b_VParam_Move
+        {
+            get { return vecParam.move.ToString(); }
             set {
-                if (value == lstGoal) return;
-                lstGoal = value;
-                OnPropertyChanged("b_lstGoals");
+                int temp = 0;
+                if ( int.TryParse(value, out temp))
+                {
+                    vecParam.move = temp;
+                    OnPropertyChanged();
+                }                                
             }
         }
+
+        public string b_VParam_Spd
+        {
+            get { return vecParam.spd.ToString(); }
+            set {
+                int temp = 0;
+                if (int.TryParse(value, out temp))
+                {
+                    vecParam.spd = temp;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public string b_VParam_Acc
+        {
+            get { return vecParam.acc.ToString(); }
+            set {
+                int temp = 0;
+                if (int.TryParse(value, out temp))
+                {
+                    vecParam.acc = temp;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public string b_VParam_Dec
+        {
+            get { return vecParam.dec.ToString(); }
+            set {
+                int temp = 0;
+                if (int.TryParse(value, out temp))
+                {
+                    vecParam.dec = temp;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
     }
 
     class GOAL_NODE

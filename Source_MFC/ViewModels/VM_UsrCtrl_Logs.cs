@@ -22,11 +22,13 @@ namespace Source_MFC.ViewModels
             Evt_ListBoxSelChanged = new Command(On_LogItemSelChanged);            
             b_LogTypeItems = new[]
             {
-                new SubItem("Production", CmdLogType.prdt, PackIconKind.Reproduction, new UsCtrl_LogItem(ctrl, CmdLogType.prdt)),
-                new SubItem("Communication", CmdLogType.Comm, PackIconKind.NearFieldCommunication, new UsCtrl_LogItem(ctrl, CmdLogType.Comm)),
-                new SubItem("SECSGEM", CmdLogType.Gem, PackIconKind.TableNetwork, new UsCtrl_LogItem(ctrl, CmdLogType.Gem)),
-                new SubItem("ERROR", CmdLogType.Err, PackIconKind.Error, new UsCtrl_LogItem(ctrl, CmdLogType.Err)),
-                new SubItem("Debug", CmdLogType.Debug, PackIconKind.DebugStepInto, new UsCtrl_LogItem(ctrl, CmdLogType.Debug))
+                 new SubItem("Production", CmdLogType.prdt, PackIconKind.Reproduction, new UsCtrl_LogItem(ctrl, CmdLogType.prdt))
+               , new SubItem("Communication", CmdLogType.Comm, PackIconKind.NearFieldCommunication, new UsCtrl_LogItem(ctrl, CmdLogType.Comm))
+               , new SubItem("SECSGEM", CmdLogType.Gem, PackIconKind.TableNetwork, new UsCtrl_LogItem(ctrl, CmdLogType.Gem))
+               , new SubItem("ERROR", CmdLogType.Err, PackIconKind.Error, new UsCtrl_LogItem(ctrl, CmdLogType.Err))
+               , new SubItem("Debug", CmdLogType.Debug, PackIconKind.DebugStepInto, new UsCtrl_LogItem(ctrl, CmdLogType.Debug))
+               , new SubItem($"{CmdLogType.Sequence}", CmdLogType.Sequence, PackIconKind.ViewSequential, new UsCtrl_SeqMoni(ctrl))
+               , new SubItem($"{CmdLogType.Task}", CmdLogType.Task, PackIconKind.ViewSequentialOutline, new UsCtrl_TaskMoni(ctrl))
             };            
             On_LogItemSelChanged((int)CmdLogType.prdt);
         }

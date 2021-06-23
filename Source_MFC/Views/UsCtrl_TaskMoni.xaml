@@ -1,0 +1,30 @@
+﻿<UserControl x:Class="Source_MFC.Views.UsCtrl_TaskMoni"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Source_MFC.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="120" d:DesignWidth="960">
+    <Grid HorizontalAlignment="Stretch" Height="110" Width="950"  >
+        <Border BorderBrush="DimGray" BorderThickness="1" >
+            <DataGrid ItemsSource="{Binding b_Tsks}" FontSize="10" IsReadOnly="true" Foreground="DimGray">
+                <DataGrid.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <TextBlock Text="{Binding SEQID}"/>
+                            <TextBlock Text="{Binding STATE}"/>
+                            <TextBlock Text="{Binding STEP}"/>
+                            <TextBlock Text="{Binding ERROR}"/>
+                            <CheckBox IsChecked="{Binding STOP}"/>
+                            <TextBlock Text="{Binding TRIGGER}"/>
+                            <TextBlock Text="{Binding RESULT}"/>
+                            <TextBlock Text="{Binding SENSING}"/>
+                            <TextBlock Text="{Binding DELAY}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </DataGrid.ItemTemplate>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>

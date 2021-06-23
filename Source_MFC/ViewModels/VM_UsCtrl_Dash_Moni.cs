@@ -122,6 +122,7 @@ namespace Source_MFC.ViewModels
                             case eUID4VM.DASH_MONI_JOB_Reset:
                                 {
                                     b_jobMoni.JobSet(_Status.Order, _Status.vecState);
+                                    b_jobMoni.StartProgress(string.Empty, 0);
                                     break;
                                 }
                             case eUID4VM.DASH_MONI_JOB_Update:

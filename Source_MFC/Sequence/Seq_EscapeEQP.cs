@@ -21,14 +21,41 @@ namespace Source_MFC.Sequence
         {
             try
             {
+                var job = _ctrl._status.Order;
+                var seqMode = _Data.Inst.sys.cfg.fac.seqMode;
                 switch (arg.nStep)
                 {
                     case DEF_CONST.SEQ_INIT:
-                        arg.nStep = 10;
+                        ResetTime();
+                        arg.nStep = 10;                        
                         arg.nStatus = eSTATE.Working;
                         break;
                     case 10:
-                        arg.nStep = 100;
+                        var chk = _ctrl.Job_CheckTray();
+                        switch (chk)
+                        {
+                            case eERROR.None:
+                                if (arg.tSen.IsOver(_Data.Inst.sys.cfg.pio.nSenDelay))
+                                {
+                                    arg.nStep = 100;
+                                }
+                                break;                            
+                            default:
+                                arg.tDly.Reset();
+                                if ( arg.tSen.IsOver(_Data.Inst.sys.cfg.pio.nCommTimeout) )
+                                {
+                                    SetErr(chk);
+                                }                                
+                                break;
+                        }
+                        break;
+                    
+                    case 100:
+                        switch (seqMode)
+                        {
+                            case eSCENARIOMODE.PC: arg.nStep = 110; break;                        
+                            default: arg.nStep = 500; break;
+                        }
                         break;
                     case 500:
                         arg.nStatus = eSTATE.Done;
@@ -37,7 +64,7 @@ namespace Source_MFC.Sequence
                     case DEF_CONST.SEQ_MAIN_FINISH:
                         arg.nStep = DEF_CONST.SEQ_FINISH;
                         break;
-                    case DEF_CONST.SEQ_FINISH: break;
+                    case DEF_CONST.SEQ_FINISH: ChkSeqStop(); break;
                 }
             }
             catch (Exception e)

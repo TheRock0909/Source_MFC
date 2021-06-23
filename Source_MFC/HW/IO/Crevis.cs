@@ -210,7 +210,7 @@ LBL_ERR:
                                 switch (_Err)
                                 {
                                     case CrevisFnIO.FNIO_ERROR_SUCCESS:
-                                        SetByteAll(eELEMENT_TYPE.GetOutput, pGetOutputImg);
+                                        SetByteAll(eELEMENT_TYPE.GetOutput, pGetOutputImg);                                        
                                         arg.nStep = 25; arg.tDly.Reset();
                                         break;
                                     default: SetDevDispose(); break;
@@ -280,7 +280,7 @@ LBL_ERR:
                     {
                         switch (idx)
                         {
-                            case 0: _Out.UINT8_0 = item; break;
+                            case 0: _Out.UINT8_0 = item; break; // 3
                             case 1: _Out.UINT8_1 = item; break;
                             case 2: _Out.UINT8_2 = item; break;
                             case 3: _Out.UINT8_3 = item; break;
@@ -289,7 +289,7 @@ LBL_ERR:
                             case 6: _Out.UINT8_6 = item; break;
                             case 7: _Out.UINT8_7 = item; break;
                             default: break;
-                        }
+                        }                        
                         idx++;
                     }
                     break;
@@ -338,7 +338,7 @@ LBL_ERR:
                         {
                             case eSENTYPE.A: _Out[src.RealID] = bTrg; break;
                             case eSENTYPE.B: _Out[src.RealID] = !bTrg; break;
-                        }
+                        }                        
                         break;
                 }                
             }

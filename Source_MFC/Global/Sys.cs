@@ -610,6 +610,8 @@ namespace Source_MFC.Global
         public int nFeedTimeOut_End { get; set; } // 작업종료 후 PIO 종료 (스메마신호 Off 확인)
         public int nSenDelay { get; set; } // 센서 확인 시 딜레이
         public int nCommTimeout { get; set; } // 통신 타임아웃(LD, Mplus)
+        public int nConvSpd_Normal { get; set; }
+        public int nConvSpd_Slow { get; set; }
         public PIO()
         {
             nInterfaceTimeout = 0;
@@ -619,6 +621,8 @@ namespace Source_MFC.Global
             nFeedTimeOut_End = 0;
             nSenDelay = 0;
             nCommTimeout = 0;
+            nConvSpd_Normal = 0;
+            nConvSpd_Slow = 0;
         }
     }
 

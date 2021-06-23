@@ -12,7 +12,9 @@ namespace Source_MFC.Utils
         Comm,
         Gem,
         Err,
-        Debug
+        Debug,
+        Sequence,
+        Task,        
     }
 
     public enum CommLogType
@@ -70,12 +72,19 @@ namespace Source_MFC.Utils
 
         public void Write(CmdLogType type, string msg, CommLogType CommType = CommLogType.None)
         {
-            if (null == PrdtLog) return;            
-            //var gmsg = $"{DateTime.Now.ToString("HH:mm:ss.fff")} : {msg}";
-            var currlog = new WriteLogArgs() { name = "", type = type, time = DateTime.Now, msg = msg, CommType = CommType };
-            PrdtLog.StrAdd(currlog);
-            Debug.WriteLine($"{type.ToString()} : {msg}");
-            Evt_WriteLog?.Invoke(this, currlog);
+            if (null == PrdtLog) return;
+            switch (type)
+            {                
+                case CmdLogType.Sequence:             
+                case CmdLogType.Task: break;
+                default:
+                    //var gmsg = $"{DateTime.Now.ToString("HH:mm:ss.fff")} : {msg}";
+                    var currlog = new WriteLogArgs() { name = "", type = type, time = DateTime.Now, msg = msg, CommType = CommType };
+                    PrdtLog.StrAdd(currlog);
+                    Debug.WriteLine($"{type.ToString()} : {msg}");
+                    Evt_WriteLog?.Invoke(this, currlog);
+                    break;
+            }            
         }
 
         internal void WriteLog(object fatal, string v)
@@ -106,132 +115,150 @@ namespace Source_MFC.Utils
 
         private void MakeDir(CmdLogType type, CommLogType CommType)
         {
-            DateTime Date = DateTime.Now;
-            string strY, strM, strD;
-            DirectoryInfo dtif = new DirectoryInfo(_PathFodler);
-            strY = string.Format("{0:yyyy}", Date);
-            strM = string.Format("{0:MM}", Date);
-            strD = string.Format("{0:dd}", Date);
-            switch (_Ver)
-            {
-                case eLOGVER.Old:
-                    dtif = new DirectoryInfo(string.Format("{0}\\{1}\\{2}", _PathFodler, type.ToString(), strY));
-                    if (!dtif.Exists)
+            switch (type)
+            {                
+                case CmdLogType.Sequence: case CmdLogType.Task: break;
+                default:
                     {
-                        dtif.Create();
-                    }
-                    switch (CommType)
-                    {
-                        case CommLogType.MPlus:
-                        case CommLogType.VEHICLE:
-                        case CommLogType.LDS:
-                        case CommLogType.QR:
-                        case CommLogType.UR:
-                        case CommLogType.TactTime:
-                            dtif = new DirectoryInfo(string.Format("{0}\\{1}\\{2}\\{3}", _PathFodler, type.ToString(), strY, strM));
-                            if (!dtif.Exists)
-                            {
-                                dtif.Create();
-                            }
+                        DateTime Date = DateTime.Now;
+                        string strY, strM, strD;
+                        DirectoryInfo dtif = new DirectoryInfo(_PathFodler);
+                        strY = string.Format("{0:yyyy}", Date);
+                        strM = string.Format("{0:MM}", Date);
+                        strD = string.Format("{0:dd}", Date);
+                        switch (_Ver)
+                        {
+                            case eLOGVER.Old:
+                                dtif = new DirectoryInfo(string.Format("{0}\\{1}\\{2}", _PathFodler, type.ToString(), strY));
+                                if (!dtif.Exists)
+                                {
+                                    dtif.Create();
+                                }
+                                switch (CommType)
+                                {
+                                    case CommLogType.MPlus:
+                                    case CommLogType.VEHICLE:
+                                    case CommLogType.LDS:
+                                    case CommLogType.QR:
+                                    case CommLogType.UR:
+                                    case CommLogType.TactTime:
+                                        dtif = new DirectoryInfo(string.Format("{0}\\{1}\\{2}\\{3}", _PathFodler, type.ToString(), strY, strM));
+                                        if (!dtif.Exists)
+                                        {
+                                            dtif.Create();
+                                        }
 
-                            dtif = new DirectoryInfo(string.Format("{0}\\{1}\\{2}\\{3}\\{4}", _PathFodler, type.ToString(), CommType.ToString(), strY, strM));
-                            if (!dtif.Exists)
-                            {
-                                dtif.Create();
-                            }
-                            break;
-                        case CommLogType.None:
-                        default:
-                            dtif = new DirectoryInfo(string.Format("{0}\\{1}\\{2}\\{3}", _PathFodler, type.ToString(), strY, strM));
-                            if (!dtif.Exists)
-                            {
-                                dtif.Create();
-                            }
-                            break;
+                                        dtif = new DirectoryInfo(string.Format("{0}\\{1}\\{2}\\{3}\\{4}", _PathFodler, type.ToString(), CommType.ToString(), strY, strM));
+                                        if (!dtif.Exists)
+                                        {
+                                            dtif.Create();
+                                        }
+                                        break;
+                                    case CommLogType.None:
+                                    default:
+                                        dtif = new DirectoryInfo(string.Format("{0}\\{1}\\{2}\\{3}", _PathFodler, type.ToString(), strY, strM));
+                                        if (!dtif.Exists)
+                                        {
+                                            dtif.Create();
+                                        }
+                                        break;
+                                }
+                                break;
+                            case eLOGVER.New:
+                                dtif = new DirectoryInfo($"{_PathFodler}\\{strY}");
+                                if (!dtif.Exists)
+                                {
+                                    dtif.Create();
+                                }
+                                dtif = new DirectoryInfo($"{_PathFodler}\\{strY}\\{strM}");
+                                if (!dtif.Exists)
+                                {
+                                    dtif.Create();
+                                }
+                                dtif = new DirectoryInfo($"{_PathFodler}\\{strY}\\{strM}\\{strD}");
+                                if (!dtif.Exists)
+                                {
+                                    dtif.Create();
+                                }
+                                switch (type)
+                                {
+                                    case CmdLogType.Comm:
+                                        dtif = new DirectoryInfo($"{_PathFodler}\\{strY}\\{strM}\\{strD}\\{type.ToString()}");
+                                        if (!dtif.Exists)
+                                        {
+                                            dtif.Create();
+                                        }
+                                        break;
+                                    default: break;
+                                }
+                                break;
+                        }
+                        break;
                     }
-                    break;
-                case eLOGVER.New:
-                    dtif = new DirectoryInfo($"{_PathFodler}\\{strY}");
-                    if (!dtif.Exists)
-                    {
-                        dtif.Create();
-                    }
-                    dtif = new DirectoryInfo($"{_PathFodler}\\{strY}\\{strM}");
-                    if (!dtif.Exists)
-                    {
-                        dtif.Create();
-                    }
-                    dtif = new DirectoryInfo($"{_PathFodler}\\{strY}\\{strM}\\{strD}");
-                    if (!dtif.Exists)
-                    {
-                        dtif.Create();
-                    }
-                    switch (type)
-                    {
-                        case CmdLogType.Comm:
-                            dtif = new DirectoryInfo($"{_PathFodler}\\{strY}\\{strM}\\{strD}\\{type.ToString()}");
-                            if (!dtif.Exists)
-                            {
-                                dtif.Create();
-                            }
-                            break;
-                        default: break;
-                    }
-                    break;
             }
+            
         }
 
         private string GetFullPath(CmdLogType type, CommLogType CommType)
         {
             string rtn = string.Empty;
-            DateTime Date = DateTime.Now;
-            string strY, strM, strD, strFileName, strFullPath = "";
-            strY = string.Format("{0:yyyy}", Date);
-            strM = string.Format("{0:MM}", Date);
-            strD = string.Format("{0:dd}", Date);
-            switch (_Ver)
-            {
-                case eLOGVER.Old:
-                    strFileName = string.Format("{0}_{1:dd}.txt", type.ToString(), Date);
-                    strFullPath = string.Format("{0}\\{1}\\{2}\\{3}\\{4}", _PathFodler, type.ToString(), strY, strM, strFileName);
-                    switch (CommType)
+            switch (type)
+            {                
+                case CmdLogType.Sequence:             
+                case CmdLogType.Task: break;
+                default:
                     {
-                        case CommLogType.MPlus:
-                        case CommLogType.VEHICLE:
-                        case CommLogType.LDS:
-                        case CommLogType.QR:
-                        case CommLogType.UR:
-                        case CommLogType.TactTime:
-                            rtn = string.Format("{0}\\{1}\\{2}\\{3}\\{4}\\{5}", _PathFodler, type.ToString(), CommType.ToString(), strY, strM, strFileName);
-                            break;
-                        default:
-                        case CommLogType.None:
-                            rtn = string.Format("{0}\\{1}\\{2}\\{3}\\{4}", _PathFodler, type.ToString(), strY, strM, strFileName);
-                            break;
+                        DateTime Date = DateTime.Now;
+                        string strY, strM, strD, strFileName, strFullPath = "";
+                        strY = string.Format("{0:yyyy}", Date);
+                        strM = string.Format("{0:MM}", Date);
+                        strD = string.Format("{0:dd}", Date);
+                        switch (_Ver)
+                        {
+                            case eLOGVER.Old:
+                                strFileName = string.Format("{0}_{1:dd}.txt", type.ToString(), Date);
+                                strFullPath = string.Format("{0}\\{1}\\{2}\\{3}\\{4}", _PathFodler, type.ToString(), strY, strM, strFileName);
+                                switch (CommType)
+                                {
+                                    case CommLogType.MPlus:
+                                    case CommLogType.VEHICLE:
+                                    case CommLogType.LDS:
+                                    case CommLogType.QR:
+                                    case CommLogType.UR:
+                                    case CommLogType.TactTime:
+                                        rtn = string.Format("{0}\\{1}\\{2}\\{3}\\{4}\\{5}", _PathFodler, type.ToString(), CommType.ToString(), strY, strM, strFileName);
+                                        break;
+                                    default:
+                                    case CommLogType.None:
+                                        rtn = string.Format("{0}\\{1}\\{2}\\{3}\\{4}", _PathFodler, type.ToString(), strY, strM, strFileName);
+                                        break;
+                                }
+                                break;
+                            case eLOGVER.New:
+                                switch (type)
+                                {
+                                    case CmdLogType.Comm:
+                                        switch (CommType)
+                                        {
+                                            case CommLogType.MPlus:
+                                            case CommLogType.VEHICLE:
+                                            case CommLogType.UR:
+                                            case CommLogType.QR:
+                                            case CommLogType.LDS:
+                                            case CommLogType.Conv:
+                                            case CommLogType.IO:
+                                            case CommLogType.TactTime:
+                                                rtn = $"{_PathFodler}\\{strY}\\{strM}\\{strD}\\{type.ToString()}\\{CommType.ToString()}.txt";
+                                                break;
+                                            default: rtn = $"{_PathFodler}\\{strY}\\{strM}\\{strD}\\{type.ToString()}.txt"; break;
+                                        }
+                                        break;
+                                    default: rtn = $"{_PathFodler}\\{strY}\\{strM}\\{strD}\\{type.ToString()}.txt"; break;
+                                }
+                                break;
+                        }
+                        break;
                     }
-                    break;
-                case eLOGVER.New:
-                    switch (type)
-                    {
-                        case CmdLogType.Comm:
-                            switch (CommType)
-                            {
-                                case CommLogType.MPlus:
-                                case CommLogType.VEHICLE:
-                                case CommLogType.UR:
-                                case CommLogType.QR:
-                                case CommLogType.LDS:
-                                case CommLogType.Conv:
-                                case CommLogType.IO:
-                                case CommLogType.TactTime:
-                                    rtn = $"{_PathFodler}\\{strY}\\{strM}\\{strD}\\{type.ToString()}\\{CommType.ToString()}.txt";
-                                    break;
-                                default: rtn = $"{_PathFodler}\\{strY}\\{strM}\\{strD}\\{type.ToString()}.txt"; break;
-                            }
-                            break;
-                        default: rtn = $"{_PathFodler}\\{strY}\\{strM}\\{strD}\\{type.ToString()}.txt"; break;
-                    }
-                    break;
             }
             return rtn;
         }
@@ -245,33 +272,42 @@ namespace Source_MFC.Utils
 
         public void Write(CmdLogType type, string LogMsg, CommLogType CommType)
         {
-            MakeDir(type, CommType);
-            string sFullPath = GetFullPath(type, CommType);
-            string log = $"{LogMsg}";
-            FileInfo file = new FileInfo(sFullPath);
-            try
-            {
-                if (!file.Exists)
-                {
-                    using (StreamWriter sw = new StreamWriter(sFullPath))
+            switch (type)
+            {                
+                case CmdLogType.Sequence:             
+                case CmdLogType.Task: break;
+                default:
                     {
-                        sw.WriteLine(log);
-                        sw.Close();
+                        MakeDir(type, CommType);
+                        string sFullPath = GetFullPath(type, CommType);
+                        string log = $"{LogMsg}";
+                        FileInfo file = new FileInfo(sFullPath);
+                        try
+                        {
+                            if (!file.Exists)
+                            {
+                                using (StreamWriter sw = new StreamWriter(sFullPath))
+                                {
+                                    sw.WriteLine(log);
+                                    sw.Close();
+                                }
+                            }
+                            else
+                            {
+                                using (StreamWriter sw = File.AppendText(sFullPath))
+                                {
+                                    sw.WriteLine(log);
+                                    sw.Close();
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            StrAdd(new WriteLogArgs() { type = CmdLogType.prdt, time = DateTime.Now, msg = $"Event Log file write Error.[{log}]\r\n{e.ToString()}", CommType = CommLogType.MPlus });
+                        }
+                        break;
                     }
-                }
-                else
-                {
-                    using (StreamWriter sw = File.AppendText(sFullPath))
-                    {
-                        sw.WriteLine(log);
-                        sw.Close();
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                StrAdd(new WriteLogArgs() { type = CmdLogType.prdt, time = DateTime.Now, msg = $"Event Log file write Error.[{log}]\r\n{e.ToString()}", CommType = CommLogType.MPlus });
-            }
+            }            
         }
 
         struct QueueMsg

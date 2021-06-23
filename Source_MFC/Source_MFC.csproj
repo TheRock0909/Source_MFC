@@ -36,6 +36,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Resource\program.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="EzVehicle">
       <HintPath>DLL\EzVehicle.dll</HintPath>
@@ -130,6 +133,8 @@
     <Compile Include="ViewModels\VM_UsrCtrl_LogItem.cs" />
     <Compile Include="ViewModels\VM_UsrCtrl_Logs.cs" />
     <Compile Include="ViewModels\VM_UsrCtrl_MenuItem.cs" />
+    <Compile Include="ViewModels\VM_UsrCtrl_SeqMoni.cs" />
+    <Compile Include="ViewModels\VM_UsrCtrl_TaskMoni.cs" />
     <Compile Include="ViewModels\_VM_MainWindow.cs" />
     <Compile Include="Views\frm_InputBox.xaml.cs">
       <DependentUpon>frm_InputBox.xaml</DependentUpon>
@@ -161,6 +166,9 @@
     <Compile Include="Views\UsCtrl_MenuItem.xaml.cs">
       <DependentUpon>UsCtrl_MenuItem.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\UsCtrl_SeqMoni.xaml.cs">
+      <DependentUpon>UsCtrl_SeqMoni.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\UsCtrl_Sys_FAC.xaml.cs">
       <DependentUpon>UsCtrl_Sys_FAC.xaml</DependentUpon>
     </Compile>
@@ -175,6 +183,9 @@
     </Compile>
     <Compile Include="Views\UsCtrl_Sys_PIO.xaml.cs">
       <DependentUpon>UsCtrl_Sys_PIO.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UsCtrl_TaskMoni.xaml.cs">
+      <DependentUpon>UsCtrl_TaskMoni.xaml</DependentUpon>
     </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -228,6 +239,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\UsCtrl_SeqMoni.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\UsCtrl_Sys_FAC.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -245,6 +260,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\UsCtrl_Sys_PIO.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UsCtrl_TaskMoni.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

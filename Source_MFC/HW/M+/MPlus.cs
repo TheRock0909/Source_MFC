@@ -14,7 +14,7 @@ namespace Source_MFC.HW.M_
          private bool connected = false;
         public bool _Connected { set { connected = value; } get => connected; }
         public event EventHandler<bool> Evt_Connection;
-        public event EventHandler<(string msg, bool bManual)> Evt_RecvData;
+        public event EventHandler<(string msg, bool bManual, int optAry)> Evt_RecvData;
         public MPlus()
         {
             udp = new AsyncUdpSock();
@@ -29,7 +29,7 @@ namespace Source_MFC.HW.M_
 
         private void On_RcvdMsg(object sender, string msg)
         {
-            Evt_RecvData?.Invoke(this, (msg,false));
+            Evt_RecvData?.Invoke(this, (msg, false, 0));
         }
 
         public void Open(string ip, int port)

@@ -11,6 +11,9 @@
              d:DesignHeight="553" d:DesignWidth="960" Foreground="Black" Background="WhiteSmoke" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
     <UserControl.Resources>
         <ResourceDictionary>
+            <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource MaterialDesignTextBox}">
+                <Setter Property="Margin" Value="0 8 0 8" />
+            </Style>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             <materialDesignConverters:BooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter" TrueValue="Collapsed" FalseValue="Visible" />
 
@@ -28,8 +31,8 @@
 
         <Grid.RowDefinitions>
             <RowDefinition Height="10*"/>
-            <RowDefinition Height="70*"/>
-            <RowDefinition Height="20*"/>
+            <RowDefinition Height="60*"/>
+            <RowDefinition Height="30*"/>
         </Grid.RowDefinitions>
 
         <Grid Background="LightSteelBlue" >
@@ -46,8 +49,6 @@
                 <RadioButton Name ="rdo_GoalType_2" Uid="605" Margin="5 5" Command="{Binding Evt_BtnClicked}" CommandParameter="{Binding Uid, ElementName=rdo_GoalType_2}" Content=" CHARGE" GroupName="MANUAL" Foreground="WhiteSmoke" HorizontalAlignment="Stretch" FontSize="20" Height="60"/>
                 <RadioButton Name ="rdo_GoalType_3" Uid="606" Margin="5 5" Command="{Binding Evt_BtnClicked}" CommandParameter="{Binding Uid, ElementName=rdo_GoalType_3}" Content=" STANDBY" GroupName="MANUAL" Foreground="WhiteSmoke" HorizontalAlignment="Stretch" FontSize="20" Height="60"/>
             </StackPanel>
-        </Grid>
-        <Grid Background="LightSlateGray" Grid.Row="2" >
         </Grid>
 
         <Grid Background="LightSlateGray" Grid.Column="1">
@@ -221,6 +222,256 @@
                         <ToggleButton Name="tgl_Skip_Transfer" Margin="10 0 0 0" VerticalAlignment="Center" Style="{StaticResource MaterialDesignSwitchLightToggleButton}" IsChecked="{Binding b_Opt_Skip_Transfer}" Grid.Row="2" Grid.Column="1" />
                     </Grid>
                 </GroupBox>
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="2" Grid.ColumnSpan="2" Background="WhiteSmoke" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="15*"/>
+                <RowDefinition Height="85*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="40*"/>
+                <ColumnDefinition Width="60*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Background="LightSteelBlue" >
+                <Border BorderBrush="AliceBlue">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon  Margin="5" Kind="DirectionsRun" Height="15" Width="15" VerticalAlignment="Center" Background="White" />
+                        <TextBlock Margin="5" Text="SEQUANCE FUNCTIONS." TextAlignment="Left" Foreground="WhiteSmoke" FontSize="10" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Grid Background="LightSteelBlue" Grid.Column="1">
+                <Border BorderBrush="AliceBlue">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon  Margin="5" Kind="CarSportsUtilityVehicle" Height="15" Width="15" VerticalAlignment="Center" Background="White" />
+                        <TextBlock Margin="5" Text="VEHICLE FUNCTIONS." TextAlignment="Left" Foreground="WhiteSmoke" FontSize="10" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40*"/>
+                    <RowDefinition Height="60*"/>
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon  Margin="5" Kind="ListStatus" Height="12" Width="12" VerticalAlignment="Center"/>
+                        <TextBlock Margin="5" Text="SELECTION" Foreground="DimGray" FontSize="12" TextAlignment="Center" VerticalAlignment="Center" />
+                        <ComboBox Name="cmb_SeqSelection" Uid="607" Width="200" FontSize="12" 
+                                  ItemsSource="{Binding eSeqlist}"
+                                  SelectedItem="{Binding b_SeqList}"
+                                  IsEditable="true"     
+                                  Style="{StaticResource MaterialDesignFloatingHintComboBox}" 
+                                  Margin="10 8 0 8"
+                                  Foreground="Black">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged">
+                                    <i:InvokeCommandAction Command="{Binding Path=DataContext.Evt_BtnClicked, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Uid, ElementName=cmb_SeqSelection}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="33*"/>
+                        <ColumnDefinition Width="33*"/>
+                        <ColumnDefinition Width="34*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button x:Name="btn_SeqInit" Uid="608" Content="INIT" Margin="5 5" Style="{StaticResource BtnDefault}"
+                        Background="DodgerBlue" Foreground="White" Command="{Binding Evt_BtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_SeqInit}" Width="100"/>
+                    <Button x:Name="btn_SeqRun" Uid="609" Content="START" Grid.Column="1" Margin="5 5" Style="{StaticResource BtnDefault}"
+                        Background="DarkSeaGreen" Foreground="White" Command="{Binding Evt_BtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_SeqRun}" Width="100"/>
+                    <Button x:Name="btn_SeqStop" Uid="610" Content="STOP" Grid.Column="2" Margin="5 5" Style="{StaticResource BtnDefault}"
+                        Background="DarkOrange" Foreground="White" Command="{Binding Evt_BtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_SeqStop}" Width="100"/>
+                </Grid>
+            </Grid>
+            
+            <Grid Grid.Row="1" Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30*"/>
+                    <RowDefinition Height="70*"/>
+                </Grid.RowDefinitions>
+                
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="70*"/>
+                    <ColumnDefinition Width="30*"/>
+                </Grid.ColumnDefinitions>
+
+                <Grid>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon  Margin="5" Kind="Car" Height="12" Width="12" VerticalAlignment="Center"/>
+                        <TextBlock Margin="5" Text="SELECTION" Foreground="DimGray" FontSize="12" TextAlignment="Center" VerticalAlignment="Center" />
+                        <ComboBox Name="cmb_VecCMdSel" Uid="607" Width="200" FontSize="8" 
+                                  ItemsSource="{Binding eVecCmdLst}"
+                                  SelectedItem="{Binding b_vecCmdLst}"
+                                  IsEditable="true"     
+                                  Style="{StaticResource MaterialDesignFloatingHintComboBox}" 
+                                  Margin="10 8 0 8"
+                                  Foreground="Black">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged">
+                                    <i:InvokeCommandAction Command="{Binding Path=DataContext.Evt_BtnClicked, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Uid, ElementName=cmb_VecCMdSel}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+                
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="25*"/>
+                        <RowDefinition Height="25*"/>
+                        <RowDefinition Height="25*"/>
+                        <RowDefinition Height="25*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Orientation="Horizontal" Grid.Row="0" >
+                        <materialDesign:PackIcon  Margin="5" Kind="TargetUser" Height="15" Width="15" VerticalAlignment="Center" Background="White" />
+                        <TextBlock Margin="5" Text="Goal #1, 2  " TextAlignment="Left" Foreground="DimGray" FontSize="9" />
+
+                        <TextBox x:Name ="txt_VParam_Goal1" Uid="614" Text="{Binding b_VParam_Goal1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"                                 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="GoalName" FontSize="5"
+                                 Width="100" HorizontalAlignment="Center" TextAlignment="Center" Height="20" VerticalAlignment="Top">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="GotFocus">
+                                    <i:InvokeCommandAction Command="{Binding Path=DataContext.Evt_DataExchange4Manual, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Uid, ElementName=txt_VParam_Goal1}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </TextBox>
+
+                        <Separator BorderThickness="2" />
+
+                        <TextBox x:Name ="txt_VParam_Goal2" Uid="615" Text="{Binding b_VParam_Goal2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"                                 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Name" FontSize="5"
+                                 Width="100" HorizontalAlignment="Center" TextAlignment="Center" Height="20" VerticalAlignment="Top">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="GotFocus">
+                                    <i:InvokeCommandAction Command="{Binding Path=DataContext.Evt_DataExchange4Manual, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Uid, ElementName=txt_VParam_Goal2}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </TextBox>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Grid.Row="1" >
+                        <materialDesign:PackIcon  Margin="5" Kind="PointOfSale" Height="15" Width="15" VerticalAlignment="Center" Background="White" />
+                        <TextBlock Margin="5" Text="Positions  " TextAlignment="Left" Foreground="DimGray" FontSize="9" />
+
+                        <TextBox x:Name ="txt_VParam_PosX" Uid="616" Text="{Binding b_VParam_PosX, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"                                 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Position X" FontSize="5"
+                                 Width="70" HorizontalAlignment="Center" TextAlignment="Center" Height="20" VerticalAlignment="Top">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="GotFocus">
+                                    <i:InvokeCommandAction Command="{Binding Path=DataContext.Evt_DataExchange4Manual, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Uid, ElementName=txt_VParam_PosX}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </TextBox>
+                        <Separator BorderThickness="2" />
+                        <TextBox x:Name ="txt_VParam_PosY" Uid="617" Text="{Binding b_VParam_PosY, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"                                 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Position X" FontSize="5"
+                                 Width="70" HorizontalAlignment="Center" TextAlignment="Center" Height="20" VerticalAlignment="Top">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="GotFocus">
+                                    <i:InvokeCommandAction Command="{Binding Path=DataContext.Evt_DataExchange4Manual, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Uid, ElementName=txt_VParam_PosY}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </TextBox>
+                        <Separator BorderThickness="2" />
+                        <TextBox x:Name ="txt_VParam_PosR" Uid="618" Text="{Binding b_VParam_PosR, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"                                 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Position X" FontSize="5"
+                                 Width="70" HorizontalAlignment="Center" TextAlignment="Center" Height="20" VerticalAlignment="Top">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="GotFocus">
+                                    <i:InvokeCommandAction Command="{Binding Path=DataContext.Evt_DataExchange4Manual, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Uid, ElementName=txt_VParam_PosR}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </TextBox>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Grid.Row="2" >
+                        <materialDesign:PackIcon  Margin="5" Kind="MoveToInbox" Height="15" Width="15" VerticalAlignment="Center" Background="White" />
+                        <TextBlock Margin="5" Text="Move params" TextAlignment="Left" Foreground="DimGray" FontSize="9" />
+
+                        <TextBox x:Name ="txt_VParam_Move" Uid="619" Text="{Binding b_VParam_PosX, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"                                 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Distance" FontSize="5"
+                                 Width="50" HorizontalAlignment="Center" TextAlignment="Center" Height="20" VerticalAlignment="Top">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="GotFocus">
+                                    <i:InvokeCommandAction Command="{Binding Path=DataContext.Evt_DataExchange4Manual, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Uid, ElementName=txt_VParam_Move}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </TextBox>
+                        <Separator BorderThickness="2" />
+                        <TextBox x:Name ="txt_VParam_Spd" Uid="620" Text="{Binding b_VParam_PosY, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"                                 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Speed" FontSize="5"
+                                 Width="50" HorizontalAlignment="Center" TextAlignment="Center" Height="20" VerticalAlignment="Top">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="GotFocus">
+                                    <i:InvokeCommandAction Command="{Binding Path=DataContext.Evt_DataExchange4Manual, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Uid, ElementName=txt_VParam_Spd}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </TextBox>
+                        <Separator BorderThickness="2" />
+                        <TextBox x:Name ="txt_VParam_Acc" Uid="621" Text="{Binding b_VParam_PosR, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"                                 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="acceleration" FontSize="5"
+                                 Width="50" HorizontalAlignment="Center" TextAlignment="Center" Height="20" VerticalAlignment="Top">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="GotFocus">
+                                    <i:InvokeCommandAction Command="{Binding Path=DataContext.Evt_DataExchange4Manual, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Uid, ElementName=txt_VParam_Acc}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </TextBox>
+                        <Separator BorderThickness="2" />
+                        <TextBox x:Name ="txt_VParam_Dec" Uid="622" Text="{Binding b_VParam_PosR, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"                                 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="deceleration" FontSize="5"
+                                 Width="50" HorizontalAlignment="Center" TextAlignment="Center" Height="20" VerticalAlignment="Top">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="GotFocus">
+                                    <i:InvokeCommandAction Command="{Binding Path=DataContext.Evt_DataExchange4Manual, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Uid, ElementName=txt_VParam_Dec}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </TextBox>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Grid.Row="3" >
+                        <materialDesign:PackIcon  Margin="5" Kind="Message" Height="15" Width="15" VerticalAlignment="Center" Background="White" />
+                        <TextBlock Margin="5" Text="Message  " TextAlignment="Left" Foreground="DimGray" FontSize="9" />
+
+                        <TextBox x:Name ="txt_VParam_Msg" Uid="623" Text="{Binding b_VParam_Msg, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"                                 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Message" FontSize="5"
+                                 Width="250" HorizontalAlignment="Center" TextAlignment="Center" Height="20" VerticalAlignment="Top">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="GotFocus">
+                                    <i:InvokeCommandAction Command="{Binding Path=DataContext.Evt_DataExchange4Manual, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Uid, ElementName=txt_VParam_Msg}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </TextBox>
+                    </StackPanel>
+
+                </Grid>
+
+                <Grid Grid.RowSpan="2" Grid.Column="1" >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="33*"/>
+                        <RowDefinition Height="34*"/>
+                        <RowDefinition Height="33*"/>
+                    </Grid.RowDefinitions>
+
+                    <Button x:Name="btn_Vec_TskInit" Uid="611" Content="INIT" Margin="3 3" Style="{StaticResource BtnDefault}"
+                        Background="DodgerBlue" Foreground="White" Command="{Binding Evt_BtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Vec_TskInit}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    <Button x:Name="btn_Vec_TskStart" Uid="612" Content="START" Grid.Row="1" Margin="3 3" Style="{StaticResource BtnDefault}"
+                        Background="DarkSeaGreen" Foreground="White" Command="{Binding Evt_BtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Vec_TskStart}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    <Button x:Name="btn_Vec_TskStop" Uid="613" Content="STOP" Grid.Row="2" Margin="3 3" Style="{StaticResource BtnDefault}"
+                        Background="DarkOrange" Foreground="White" Command="{Binding Evt_BtnClicked}" CommandParameter="{Binding Uid, ElementName=btn_Vec_TskStop}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                </Grid>
             </Grid>
         </Grid>
     </Grid>

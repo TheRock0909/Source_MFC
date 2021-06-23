@@ -252,8 +252,17 @@ namespace Source_MFC.Global
           None
         , Clear
         , EMG
+        , TrayDetected
+        , NoneofTrays
+        , TraysJaming
+        , DockingFiled
         , VEC_UNAVAILAABLE
         , VEC_COMMTIMEOUT
+        , VEC_Move2Failed
+        , VEC_Unnormal
+        , PIO_Valid
+        , PIO_Ready
+        , PIO_Complete
     }
 
 
@@ -358,7 +367,8 @@ namespace Source_MFC.Global
 
         , PIO_0 = 300               , PIO_1                     , PIO_2
         , PIO_3                     , PIO_4                     
-        , SENDELAY                  , COMM_TIMEOUT
+        , SENDELAY                  , COMM_TIMEOUT      
+        , CONVSPD_NORMAL            , CONVSPD_SLOW
 
         , FAC_EQPType = 400         , FAC_EQPName               , FAC_Customer
         , FAC_SeqMode               , FAC_Language              , FAC_MPlusIP
@@ -372,7 +382,15 @@ namespace Source_MFC.Global
 
         , DASH_MNL_ALL = 600        , DASH_MNL_GoalItem         , DASH_MNL_BTN_MAKEORDER    
         , DASH_MNL_RDO_GoalType_0   , DASH_MNL_RDO_GoalType_1   , DASH_MNL_RDO_GoalType_2
-        , DASH_MNL_RDO_GoalType_3   
+        , DASH_MNL_RDO_GoalType_3   , DASH_MNL_SEQ_SELECTION
+        , DASH_MNL_SEQ_INIT         , DASH_MNL_SEQ_START        , DASH_MNL_SEQ_STOP
+        , DASH_MNL_VECTSK_INIT      , DASH_MNL_VECTSK_START     , DASH_MNL_VECTSK_STOP
+        , DASH_MNL_VTSK_PARA_GOAL1  , DASH_MNL_VTSK_PARA_GOAL2
+        , DASH_MNL_VTSK_PARA_POSX   , DASH_MNL_VTSK_PARA_POSY   , DASH_MNL_VTSK_PARA_POSR
+        , DASH_MNL_VTSK_PARA_MOVEX  , DASH_MNL_VTSK_PARA_SPEED  , DASH_MNL_VTSK_PARA_ACC    
+        , DASH_MNL_VTSK_PARA_DCC    , DASH_MNL_VTSK_PARA_MSG
+
+
 
         , MAINWIN_ALL = 700         , MAINWIN_EqpState          , MAINWIN_User
         , MAINWIN_CloseMenu         , MAINWIN_OpenMenu          , MAINWIN_Popup_Login

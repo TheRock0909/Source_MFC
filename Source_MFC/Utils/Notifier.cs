@@ -335,5 +335,82 @@ namespace Source_MFC.Utils
             set { this.MutateVerbose(ref label, value, RaisePropertyChanged()); }
         }        
     }
+
+    public class SRC4ARG : Notifier
+    {
+        private string strSeqID= string.Empty;
+        public string ID
+        {
+            get => strSeqID;
+            set { strSeqID = value; }
+        }
+
+        public eSEQLIST GetSeqID()
+        {
+            return strSeqID.ToEnum<eSEQLIST>();
+        }
+
+        public eTASKLIST GetTskID()
+        {
+            return strSeqID.ToEnum<eTASKLIST>();
+        }
+
+        private string state = string.Empty;
+        public string STATE
+        {
+            get => state;
+            set { this.MutateVerbose(ref state, value, RaisePropertyChanged()); }
+        }
+
+        private string step = string.Empty;
+        public string STEP
+        {
+            get => step;
+            set { this.MutateVerbose(ref step, value, RaisePropertyChanged()); }
+        }
+
+        private string error = eERROR.None.ToString();
+        public string ERROR
+        {
+            get => error;
+            set { this.MutateVerbose(ref error, value, RaisePropertyChanged()); }
+        }
+
+        private bool stop = false;
+        public bool STOP
+        {
+            get => stop;
+            set { this.MutateVerbose(ref stop, value, RaisePropertyChanged()); }
+        }
+
+        private string trg = string.Empty;
+        public string TRIGGER
+        {
+            get => trg;
+            set { this.MutateVerbose(ref trg, value, RaisePropertyChanged()); }
+        }
+
+        private string rslt = string.Empty;
+        public string RESULT
+        {
+            get => rslt;
+            set { this.MutateVerbose(ref rslt, value, RaisePropertyChanged()); }
+        }
+
+        private string sen = string.Empty;
+        public string SENSING
+        {
+            get => sen;
+            set { this.MutateVerbose(ref sen, value, RaisePropertyChanged()); }
+        }
+
+        private string dly = string.Empty;
+        public string DELAY
+        {
+            get => dly;
+            set { this.MutateVerbose(ref dly, value, RaisePropertyChanged()); }
+        }
+
+    }
 }
 

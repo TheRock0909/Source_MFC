@@ -81,6 +81,7 @@ namespace Source_MFC.HW.MobileRobot.LD
         public LD_STATUS _CurrStatus =>_curr;
         LD_STATUS _beforeSt = new LD_STATUS(null), _curr = new LD_STATUS(null);
         TIMEARG _tReqStaus = new TIMEARG();
+        public bool bRobotPaused { get; set; } = false;
         public LD(string ip)
         {
             _ip = ip;
@@ -143,7 +144,23 @@ namespace Source_MFC.HW.MobileRobot.LD
                         _curr.dist.result = temp.dist.result;
                         break;
                     }
+                case eVECST_CMD_TYPE.TRANSGO:
+                    {
+                        _curr.cmd = temp.cmd;
+                        _curr.dist.cmd = temp.dist.cmd;
+                        _curr.dist.goal1 = temp.dist.goal1;
+                        break;
+                    }
                 default: break;
+            }
+
+            switch (temp.state.st)
+            {
+               
+                case eVECSTATE.PAUSING: bRobotPaused = true; break;
+                case eVECSTATE.PAUSE_CANCELLED: bRobotPaused = false; break;
+                case eVECSTATE.PAUSE_INTERRUPTED:                    
+                default: bRobotPaused = false; break;
             }
 
             switch (temp.cmd)
@@ -240,6 +257,7 @@ namespace Source_MFC.HW.MobileRobot.LD
                                     _curr.dist.cmd = eSTATE.Checking.ToString();
                                     cmdmsg = $"distanceFromHere {arg.goal_1st}";
                                     break;
+                                case eVEC_CMD.SendMassage: ArclMsg(arg.msg); break;
                                 default: bSend = false; break;
                             }
                         }
@@ -289,5 +307,9 @@ namespace Source_MFC.HW.MobileRobot.LD
             }
         }
 
+        public void ArclMsg(string msg, bool bWriteLog = true)
+        {
+            SendQuery($"arclsendtext {msg}", bWriteLog);
+        }
     }
 }

@@ -61,7 +61,7 @@
                       materialDesign:ColorZoneAssist.Mode="Dark">
                 <Grid>
                     <StackPanel Orientation="Vertical">
-                        <DataGrid Name="grd_Output" ItemsSource="{Binding b_Outputs}" FontSize="10" IsReadOnly="true" VerticalScrollBarVisibility="Auto" Height="530" >
+                        <DataGrid Name="grd_Output" ItemsSource="{Binding b_Outputs}" FontSize="10" IsReadOnly="true" VerticalScrollBarVisibility="Auto" Height="455" >
                             <DataGrid.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel>

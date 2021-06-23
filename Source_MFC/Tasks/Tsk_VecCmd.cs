@@ -19,7 +19,7 @@ namespace Source_MFC.Tasks
         {
             _ctrl = main;
             vecState = _ctrl._status.vecState;
-            arg = new SUBTSKARG(eTASKLIST.MPLUSCOMM);
+            arg = new SUBTSKARG(eTASKLIST.VECCMD);
         }
         
         override public void Run()
@@ -80,7 +80,7 @@ namespace Source_MFC.Tasks
                             // 완료확인이 필요없는 Tasks
                             case eVEC_CMD.Stop: case eVEC_CMD.Say:
                             case eVEC_CMD.PauseCancel: case eVEC_CMD.Undock:
-                            case eVEC_CMD.LocalizeAtGoal:
+                            case eVEC_CMD.LocalizeAtGoal: case eVEC_CMD.SendMassage:
                                 arg.nStep = 500;
                                 break;
                             // 완료확인이 필요한 Tasks

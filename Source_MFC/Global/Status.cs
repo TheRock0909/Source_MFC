@@ -62,12 +62,9 @@ namespace Source_MFC.Global
             bool rtn = false;
             switch (this.nStart)
             {
-                case 0:
-                    SetTime(ref this.nStart);
-                    this.nDelay = Delay;
-                    break;
+                case 0: SetTime(ref this.nStart); break;
                 default:
-                    rtn = ChkTimeOver(this.nStart, this.nDelay, ref this.nCurr);
+                    rtn = ChkTimeOver(this.nStart, Delay, ref this.nCurr);
                     if (true == rtn)
                     {
                         this.nStart = 0;
@@ -77,6 +74,8 @@ namespace Source_MFC.Global
             }
             return rtn;
         }
+
+        public long _currBySec => this.nCurr/1000;
 
         public bool IsOver()
         {
@@ -169,7 +168,7 @@ namespace Source_MFC.Global
                     break;
                 default: break;
             }
-        }
+        }        
 
         public void Reset()
         {
@@ -416,7 +415,7 @@ namespace Source_MFC.Global
               , pos = new nPOS_XYR() { x = job.goal.pos.x, y = job.goal.pos.y, r = job.goal.pos.r }
               , escape = new nPOS_XYR() { x = job.goal.escape.x, y = job.goal.escape.y, r = job.goal.escape.r }
             };
-            this.opt = new JOBOPT();
+            this.opt = new JOBOPT();                       
             this.state = eJOBST.None;
             this.materialID = job.materialID;
             this.partidx = job.partidx;
@@ -904,7 +903,8 @@ namespace Source_MFC.Global
         public string swVer { get; set; } = string.Empty;
         public eEQPSATUS eqpState { get; set; } = eEQPSATUS.Init;
         public USER user { get; set; } = new USER();
-        public bool bManual { get; set; } = false;
+        public bool bManualJob { get; set; } = false;
+        public bool bManualSeq { get; set; } = false;
         public bool bLoaded { get; set; } = false;
         public string prcssMem { get; set; } = string.Empty;
         public TASKARG DevTsksCycle { get; set; } = new TASKARG(eSEQLIST.MAX_SEQ);
@@ -916,8 +916,7 @@ namespace Source_MFC.Global
         public JOB mnlOrdr4mp { get; set; } = new JOB(); // M+에게 통신하기 위한 데이터버퍼
         public string lastDest { get; set; } = string.Empty;
         public MP_ERR err4mp { get; set; } = new MP_ERR();  
-        public double dResult { get; set; } = 0;
-
+        public double dResult { get; set; } = 0;        
         public STATUS()
         {
 

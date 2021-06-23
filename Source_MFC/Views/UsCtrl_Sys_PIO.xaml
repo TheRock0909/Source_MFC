@@ -51,7 +51,9 @@
             <RowDefinition Height="10*"/>
             <RowDefinition Height="10*"/>
             <RowDefinition Height="10*"/>
-            <RowDefinition Height="40*"/>
+            <RowDefinition Height="10*"/>
+            <RowDefinition Height="10*"/>
+            <RowDefinition Height="15*"/>
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Grid.Column="0" Background="Azure">
@@ -131,7 +133,7 @@
 
         <StackPanel Grid.Row="6" Margin="20 0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left" >
             <materialDesign:PackIcon Kind="AddCircle" Foreground="{Binding ElementName=txt_SendDelay, Path=BorderBrush}" VerticalAlignment="Center" Height="20" Width="20" />
-            <TextBlock Text=" Checking time for sensor delay   " Uid="304" FontSize="15" VerticalAlignment="Center" Foreground="{Binding ElementName=txt_SendDelay, Path=BorderBrush}"/>
+            <TextBlock Text=" Checking time for sensor delay   " Uid="305" FontSize="15" VerticalAlignment="Center" Foreground="{Binding ElementName=txt_SendDelay, Path=BorderBrush}"/>
             <TextBox x:Name ="txt_SendDelay" Uid="305" Text="{Binding b_SensorDelay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Timeout" Width="100" HorizontalAlignment="Center" TextAlignment="Center">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="GotFocus">
@@ -144,7 +146,7 @@
 
         <StackPanel Grid.Row="7" Margin="20 0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left" >
             <materialDesign:PackIcon Kind="NearFieldCommunication" Foreground="{Binding ElementName=txt_CommTimeout, Path=BorderBrush}" VerticalAlignment="Center" Height="20" Width="20" />
-            <TextBlock Text=" Timeout setup for communications   " Uid="304" FontSize="15" VerticalAlignment="Center" Foreground="{Binding ElementName=txt_CommTimeout, Path=BorderBrush}"/>
+            <TextBlock Text=" Timeout setup for communications   " Uid="306" FontSize="15" VerticalAlignment="Center" Foreground="{Binding ElementName=txt_CommTimeout, Path=BorderBrush}"/>
             <TextBox x:Name ="txt_CommTimeout" Uid="305" Text="{Binding b_CommTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Timeout" Width="100" HorizontalAlignment="Center" TextAlignment="Center">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="GotFocus">
@@ -155,7 +157,33 @@
             <TextBlock Text="msec" FontSize="15" VerticalAlignment="Bottom" Foreground="{Binding ElementName=txt_CommTimeout, Path=BorderBrush}"/>
         </StackPanel>
 
-        <StackPanel Grid.Row="8" >
+        <StackPanel Grid.Row="8" Margin="20 0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left" >
+            <materialDesign:PackIcon Kind="Speedometer" Foreground="{Binding ElementName=txt_ConvSpd_Normal, Path=BorderBrush}" VerticalAlignment="Center" Height="20" Width="20" />
+            <TextBlock Text=" Normal conveyor feeding speed   " Uid="307" FontSize="15" VerticalAlignment="Center" Foreground="{Binding ElementName=txt_ConvSpd_Normal, Path=BorderBrush}"/>
+            <TextBox x:Name ="txt_ConvSpd_Normal" Uid="305" Text="{Binding b_ConvSpd_Normal, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="speed" Width="100" HorizontalAlignment="Center" TextAlignment="Center">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="GotFocus">
+                        <i:InvokeCommandAction Command="{Binding Path=DataContext.Evt_MouseDown4PIO, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Uid, ElementName=txt_ConvSpd_Normal}"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </TextBox>
+            <TextBlock Text="msec" FontSize="15" VerticalAlignment="Bottom" Foreground="{Binding ElementName=txt_ConvSpd_Normal, Path=BorderBrush}"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="9" Margin="20 0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left" >
+            <materialDesign:PackIcon Kind="SpeedometerSlow" Foreground="{Binding ElementName=txt_ConvSpd_Slow, Path=BorderBrush}" VerticalAlignment="Center" Height="20" Width="20" />
+            <TextBlock Text=" Slow conveyor feeding speed   " Uid="308" FontSize="15" VerticalAlignment="Center" Foreground="{Binding ElementName=txt_ConvSpd_Slow, Path=BorderBrush}"/>
+            <TextBox x:Name ="txt_ConvSpd_Slow" Uid="305" Text="{Binding b_ConvSpd_Slow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="speed" Width="100" HorizontalAlignment="Center" TextAlignment="Center">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="GotFocus">
+                        <i:InvokeCommandAction Command="{Binding Path=DataContext.Evt_MouseDown4PIO, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Uid, ElementName=txt_ConvSpd_Slow}"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </TextBox>
+            <TextBlock Text="msec" FontSize="15" VerticalAlignment="Bottom" Foreground="{Binding ElementName=txt_ConvSpd_Slow, Path=BorderBrush}"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="10" >
         </StackPanel>
     </Grid>
 </UserControl>

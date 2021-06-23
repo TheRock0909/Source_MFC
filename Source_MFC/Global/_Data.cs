@@ -139,6 +139,7 @@ namespace Source_MFC.Global
         , GetDistBetween
         , GetDistFromHere
         , LocalizeAtGoal
+        , SendMassage
     }
 
 
